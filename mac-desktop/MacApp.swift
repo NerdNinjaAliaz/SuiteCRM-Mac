@@ -60,13 +60,15 @@ final class SuiteCRMMacApp: NSObject, NSApplicationDelegate, WKScriptMessageHand
         NSApp.activate(ignoringOtherApps: true)
         installMenu()
 
+        // Bundle resources take priority when launched from /Applications.
         let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let executableDir = URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL.deletingLastPathComponent()
-        let candidates = [
-            cwd.appendingPathComponent("suitecrm_mac.html"),
+        let candidates: [URL] = [
+            Bundle.main.url(forResource: "suitecrm_mac", withExtension: "html"),
+            executableDir.appendingPathComponent("../Resources/suitecrm_mac.html").standardizedFileURL,
             executableDir.appendingPathComponent("suitecrm_mac.html"),
-            executableDir.appendingPathComponent("../Resources/suitecrm_mac.html").standardizedFileURL
-        ]
+            cwd.appendingPathComponent("suitecrm_mac.html")
+        ].compactMap { $0 }
         guard let htmlFile = candidates.first(where: { FileManager.default.fileExists(atPath: $0.path) }) else {
             let alert = NSAlert()
             alert.messageText = "Cannot find suitecrm_mac.html"
