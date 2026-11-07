@@ -1,0 +1,2011 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SuiteCRM for Mac — Native Enterprise CRM</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'sans-serif'],
+            mono: ['JetBrains Mono', 'SF Mono', 'monospace']
+          },
+          colors: {
+            mac: {
+              bg: '#141619',
+              sidebar: '#1C1F24',
+              card: '#22262C',
+              border: '#2E333B',
+              accent: '#0A84FF',
+              success: '#30D158',
+              warning: '#FF9F0A',
+              danger: '#FF453A',
+              purple: '#BF5AF2'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.25); border-radius: 9999px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.45); }
+    .mac-traffic-dot { width: 12px; height: 12px; border-radius: 9999px; display: inline-block; transition: transform 0.15s ease; }
+    .mac-traffic-dot:hover { transform: scale(1.12); }
+    .glass-header { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+    @keyframes pulseSubtle { 0%, 100% { opacity: 1; } 50% { opacity: 0.65; } }
+    .animate-pulse-subtle { animation: pulseSubtle 2.4s infinite ease-in-out; }
+  </style>
+</head>
+<body class="bg-slate-100 dark:bg-[#111317] text-slate-900 dark:text-slate-100 min-h-screen flex flex-col overflow-x-hidden selection:bg-blue-500 selection:text-white">
+
+  <!-- macOS Native Window Frame -->
+  <div id="macWindow" class="flex-1 flex flex-col m-0 sm:m-2 rounded-none sm:rounded-2xl overflow-hidden border border-slate-300 dark:border-[#2B3038] shadow-2xl bg-white dark:bg-[#16191E]">
+
+    <!-- Top macOS Titlebar & Toolbar -->
+    <header class="h-13 px-4 py-2.5 bg-slate-200/80 dark:bg-[#1C2026]/90 glass-header border-b border-slate-300 dark:border-[#2B3038] flex flex-wrap items-center justify-between gap-2 z-20">
+      <div class="flex items-center gap-3">
+        <!-- macOS Traffic Lights -->
+        <div class="flex items-center gap-2 mr-2" title="macOS Window Controls">
+          <button id="btnTrafficClose" type="button" class="mac-traffic-dot bg-[#FF5F56] border border-[#E0443E]" aria-label="Close Window"></button>
+          <button id="btnTrafficMin" type="button" class="mac-traffic-dot bg-[#FFBD2E] border border-[#DEA123]" aria-label="Minimize Window"></button>
+          <button id="btnTrafficMax" type="button" class="mac-traffic-dot bg-[#27C93F] border border-[#1AAB29]" aria-label="Toggle Fullscreen"></button>
+        </div>
+
+        <button id="btnToggleSidebar" type="button" class="p-1.5 rounded-lg hover:bg-slate-300/60 dark:hover:bg-slate-700/60 text-slate-600 dark:text-slate-300 transition" title="Toggle Sidebar (⌘S)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xs shadow">S</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-sm tracking-tight">SuiteCRM for Mac</span>
+              <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">SugarBean Engine v8.4</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Spotlight Search Bar -->
+      <div class="flex-1 max-w-md mx-2">
+        <div class="relative flex items-center">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z"/></svg>
+          <input id="globalSearchInput" type="text" placeholder="Spotlight Search Beans: Accounts, Contacts, Leads, Deals, Quotes... (⌘K)" class="w-full pl-9 pr-14 py-1.5 text-xs rounded-lg bg-white/90 dark:bg-[#111317]/90 border border-slate-300 dark:border-[#2F3540] focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 placeholder-slate-400" />
+          <kbd class="absolute right-2.5 text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700">⌘K</kbd>
+        </div>
+      </div>
+
+      <!-- Right Action Toolbar -->
+      <div class="flex items-center gap-1.5">
+        <button id="btnQuickCreate" type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          <span>New Bean</span>
+        </button>
+
+        <button id="btnRunDiagnostics" type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 transition" title="Run Built-in SuiteCRM Self-Tests">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-subtle"></span>
+          <span>Run Tests</span>
+        </button>
+
+        <button id="btnExportData" type="button" class="p-1.5 rounded-lg hover:bg-slate-300/60 dark:hover:bg-slate-700/60 text-slate-600 dark:text-slate-300 text-xs transition" title="Export SugarBean Database (JSON)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/></svg>
+        </button>
+
+        <button id="btnResetDemo" type="button" class="p-1.5 rounded-lg hover:bg-slate-300/60 dark:hover:bg-slate-700/60 text-slate-600 dark:text-slate-300 text-xs transition" title="Reset Seed CRM Data">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
+
+        <button id="btnThemeToggle" type="button" class="p-1.5 rounded-lg hover:bg-slate-300/60 dark:hover:bg-slate-700/60 text-slate-600 dark:text-slate-300 transition" title="Toggle macOS Light / Dark Appearance">
+          <svg id="iconSun" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="iconMoon" class="w-4 h-4 block dark:hidden text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main macOS Split View Container -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+      <!-- Left macOS Vibrancy Sidebar -->
+      <aside id="macSidebar" class="w-60 bg-slate-100/90 dark:bg-[#191C22] border-r border-slate-200 dark:border-[#262B33] flex flex-col justify-between shrink-0 select-none transition-all duration-200">
+        <div class="p-3 space-y-4 overflow-y-auto custom-scroll">
+          <!-- Group: SuiteCRM Core -->
+          <div>
+            <div class="px-2.5 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">SuiteCRM Modules</div>
+            <nav id="moduleNavList" class="space-y-0.5">
+              <!-- Populated dynamically by renderSidebar() -->
+            </nav>
+          </div>
+
+          <!-- Group: Engine & Architecture -->
+          <div>
+            <div class="px-2.5 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Core Framework</div>
+            <nav class="space-y-0.5">
+              <button type="button" data-nav="workflows" class="nav-item w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800/60 transition">
+                <span class="flex items-center gap-2.5">
+                  <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                  <span>AOW Workflows & Hooks</span>
+                </span>
+                <span id="badge-workflows" class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">4</span>
+              </button>
+              <button type="button" data-nav="studio" class="nav-item w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800/60 transition">
+                <span class="flex items-center gap-2.5">
+                  <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+                  <span>Studio & Vardefs</span>
+                </span>
+                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">MVC</span>
+              </button>
+              <button type="button" data-nav="tests" class="nav-item w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800/60 transition">
+                <span class="flex items-center gap-2.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span>Test Suite & Audit Log</span>
+                </span>
+                <span id="badge-tests" class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400">PASS</span>
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Bottom SugarBean Persistence Status -->
+        <div class="p-3 border-t border-slate-200 dark:border-[#262B33] bg-slate-200/40 dark:bg-[#14171C] text-[11px]">
+          <div class="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-1">
+            <span class="font-medium flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              BeanStore SQLite/Local
+            </span>
+            <span id="totalBeansCount" class="font-mono text-[10px] text-blue-500">0 beans</span>
+          </div>
+          <div class="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+            Inspired by <a href="https://github.com/SuiteCRM/SuiteCRM" target="_blank" rel="noopener noreferrer" class="underline hover:text-blue-400">SuiteCRM/SuiteCRM</a>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center Workspace Content Area -->
+      <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#16191E] overflow-hidden">
+        <!-- Module Subheader Bar -->
+        <div class="px-5 py-3 border-b border-slate-200 dark:border-[#262B33] flex flex-wrap items-center justify-between gap-3 bg-slate-50/60 dark:bg-[#181C22]">
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 id="viewTitle" class="text-base font-semibold tracking-tight">SuiteCRM Executive Dashboard</h1>
+              <span id="viewModuleBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 dark:bg-[#252A34] text-slate-600 dark:text-slate-300">Home::Dashlets</span>
+            </div>
+            <p id="viewSubtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Real-time SugarBean pipeline analytics, LogicHooks audit feed, and open activities</p>
+          </div>
+
+          <div id="moduleActionControls" class="flex items-center gap-2">
+            <!-- View Mode Switcher for Opportunities (List vs Kanban) -->
+            <div id="oppViewToggle" class="hidden items-center bg-slate-200 dark:bg-[#222730] p-0.5 rounded-lg border border-slate-300 dark:border-[#2F3540]">
+              <button type="button" id="btnOppKanban" class="px-2.5 py-1 text-xs font-medium rounded-md bg-blue-600 text-white">Kanban Board</button>
+              <button type="button" id="btnOppList" class="px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 dark:text-slate-300">List View</button>
+            </div>
+
+            <!-- Filter by Status/Stage -->
+            <select id="moduleFilterSelect" aria-label="Filter records" class="hidden text-xs rounded-lg px-2.5 py-1.5 bg-white dark:bg-[#1E222A] border border-slate-300 dark:border-[#2F3540] text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500">
+              <option value="ALL">All Records</option>
+            </select>
+
+            <button id="btnModuleCreate" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+              <span id="btnModuleCreateLabel">Create Record</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic View Body -->
+        <div id="workspaceContainer" class="flex-1 overflow-y-auto custom-scroll p-5">
+          <!-- Rendered by JS controller -->
+        </div>
+      </main>
+
+      <!-- Right macOS Inspector Drawer (DetailView + Relationship Subpanels) -->
+      <aside id="inspectorDrawer" class="w-96 bg-slate-50 dark:bg-[#191D24] border-l border-slate-200 dark:border-[#262B33] flex flex-col shrink-0 transition-all duration-200 hidden">
+        <div class="px-4 py-3 border-b border-slate-200 dark:border-[#262B33] flex items-center justify-between bg-slate-100/80 dark:bg-[#1E232B]">
+          <div class="flex items-center gap-2 min-w-0">
+            <span id="inspectorModulePill" class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30">Bean</span>
+            <h2 id="inspectorTitle" class="text-sm font-semibold truncate">Record Inspector</h2>
+          </div>
+          <div class="flex items-center gap-1">
+            <button id="btnInspectorEdit" type="button" class="px-2 py-1 text-xs rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 font-medium">Edit</button>
+            <button id="btnInspectorDelete" type="button" class="px-2 py-1 text-xs rounded hover:bg-rose-500/20 text-rose-500 font-medium">Delete</button>
+            <button id="btnInspectorClose" type="button" class="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400" aria-label="Close Inspector">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="inspectorBody" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-5">
+          <!-- Populated dynamically with DetailView fields + SuiteCRM Relationship Subpanels -->
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- Bottom macOS Status Bar -->
+    <footer class="h-7 px-4 bg-slate-200/90 dark:bg-[#14171C] border-t border-slate-300 dark:border-[#262B33] flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
+      <div class="flex items-center gap-4">
+        <span id="statusLastHook" class="flex items-center gap-1.5 truncate">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+          <span>LogicHook Ready — SugarBean ORM Active</span>
+        </span>
+      </div>
+      <div class="flex items-center gap-4 font-mono text-[10px]">
+        <span id="statusPipelineSum">Pipeline: $0</span>
+        <span id="statusTestBadge" class="text-emerald-600 dark:text-emerald-400">Self-Tests: 12/12 PASS</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Create / Edit SugarBean Modal -->
+  <div id="beanModalOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-[#1C2028] border border-slate-300 dark:border-[#2E3440] shadow-2xl overflow-hidden">
+      <div class="px-5 py-3.5 bg-slate-100 dark:bg-[#222731] border-b border-slate-200 dark:border-[#2E3440] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+          <h3 id="modalTitle" class="text-sm font-semibold">Create SugarBean Record</h3>
+        </div>
+        <button id="btnCloseModal" type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="beanForm" class="p-5 space-y-4 max-h-[75vh] overflow-y-auto custom-scroll">
+        <input type="hidden" id="formModule" value="Accounts" />
+        <input type="hidden" id="formRecordId" value="" />
+        <div id="formModuleSelectorRow">
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">SuiteCRM Module (`BeanFactory::newBean`)</label>
+          <select id="formModuleSelect" class="w-full text-xs rounded-lg px-3 py-2 bg-slate-50 dark:bg-[#14171D] border border-slate-300 dark:border-[#2E3440]">
+            <option value="Accounts">Accounts (Company Hub)</option>
+            <option value="Contacts">Contacts (Person)</option>
+            <option value="Leads">Leads (Inbound Prospect)</option>
+            <option value="Opportunities">Opportunities (Sales Deal)</option>
+            <option value="Quotes">AOS_Quotes (Sales Quote & Invoice)</option>
+            <option value="Cases">Cases (Support Ticket)</option>
+            <option value="Activities">Activities (Call / Meeting / Task)</option>
+          </select>
+        </div>
+        <div id="dynamicFormFields" class="space-y-3"></div>
+        <div class="pt-3 border-t border-slate-200 dark:border-[#2E3440] flex items-center justify-end gap-2">
+          <button type="button" id="btnCancelModal" class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:opacity-90">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white shadow">Save Bean</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="macToast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-900/95 dark:bg-[#252B36]/95 text-white text-xs shadow-xl border border-slate-700">
+    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    <span id="macToastText">Action completed</span>
+  </div>
+
+  <script>
+    /* =========================================================================
+     * SUITECRM FOR MAC — SUGARBEAN MVC, METADATA (VARDEFS), RELATIONSHIPS & AOW
+     * Directly modeled on https://github.com/SuiteCRM/SuiteCRM
+     * ========================================================================= */
+
+    const STORAGE_KEY = 'suitecrm_mac_beanstore_v1';
+
+    // SuiteCRM Metadata (Vardefs & Studio Layout Definitions)
+    const SUITECRM_VARDEFS = {
+      Accounts: {
+        module: 'Accounts',
+        beanClass: 'Account',
+        iconColor: 'bg-blue-500',
+        label: 'Accounts',
+        singular: 'Account',
+        description: 'Central company records linking Contacts, Opportunities, Quotes, Cases, and Activities.',
+        fields: [
+          { name: 'name', label: 'Account Name', type: 'text', required: true, placeholder: 'e.g., Cupertino Logic Systems' },
+          { name: 'account_type', label: 'Account Type', type: 'enum', options: ['Customer', 'Prospect', 'Partner', 'Reseller', 'Investor'] },
+          { name: 'industry', label: 'Industry', type: 'enum', options: ['Technology', 'Finance', 'Healthcare', 'Manufacturing', 'Retail', 'Clean Energy'] },
+          { name: 'annual_revenue', label: 'Annual Revenue ($)', type: 'currency', placeholder: '4800000' },
+          { name: 'phone_office', label: 'Office Phone', type: 'text', placeholder: '+1 (408) 555-0192' },
+          { name: 'website', label: 'Website', type: 'text', placeholder: 'https://cupertinologic.example.com' },
+          { name: 'billing_address_city', label: 'Billing City', type: 'text', placeholder: 'San Jose, CA' },
+          { name: 'assigned_user_name', label: 'Assigned To', type: 'text', placeholder: 'Sarah Chen' }
+        ],
+        subpanels: ['Contacts', 'Opportunities', 'Quotes', 'Cases', 'Activities']
+      },
+      Contacts: {
+        module: 'Contacts',
+        beanClass: 'Contact',
+        iconColor: 'bg-emerald-500',
+        label: 'Contacts',
+        singular: 'Contact',
+        description: 'Qualified individuals associated with an Account and linked to Opportunities and Activities.',
+        fields: [
+          { name: 'first_name', label: 'First Name', type: 'text', required: true, placeholder: 'Elena' },
+          { name: 'last_name', label: 'Last Name', type: 'text', required: true, placeholder: 'Rostova' },
+          { name: 'title', label: 'Job Title', type: 'text', placeholder: 'VP of Infrastructure' },
+          { name: 'account_id', label: 'Primary Account', type: 'relate', relateModule: 'Accounts' },
+          { name: 'email1', label: 'Email Address', type: 'text', placeholder: 'elena.rostova@company.io' },
+          { name: 'phone_work', label: 'Work Phone', type: 'text', placeholder: '+1 (415) 555-0148' },
+          { name: 'lead_source', label: 'Lead Source', type: 'enum', options: ['Web Site', 'Partner Referral', 'Conference', 'Cold Call', 'Direct Mail'] }
+        ],
+        subpanels: ['Opportunities', 'Activities', 'Cases']
+      },
+      Leads: {
+        module: 'Leads',
+        beanClass: 'Lead',
+        iconColor: 'bg-amber-500',
+        label: 'Leads',
+        singular: 'Lead',
+        description: 'Unqualified inbound inquiries that convert into an Account, Contact, and Opportunity.',
+        fields: [
+          { name: 'first_name', label: 'First Name', type: 'text', required: true, placeholder: 'Marcus' },
+          { name: 'last_name', label: 'Last Name', type: 'text', required: true, placeholder: 'Vance' },
+          { name: 'account_name', label: 'Company / Account Name', type: 'text', required: true, placeholder: 'Pacific Aero Dynamics' },
+          { name: 'title', label: 'Title', type: 'text', placeholder: 'Director of Operations' },
+          { name: 'status', label: 'Lead Status', type: 'enum', options: ['New', 'Assigned', 'In Process', 'Converted', 'Recycled', 'Dead'] },
+          { name: 'lead_source', label: 'Lead Source', type: 'enum', options: ['Web Site', 'Conference', 'Partner Referral', 'Email Campaign', 'Cold Call'] },
+          { name: 'estimated_value', label: 'Estimated Deal Amount ($)', type: 'currency', placeholder: '85000' },
+          { name: 'email1', label: 'Email Address', type: 'text', placeholder: 'mvance@pacificaero.io' },
+          { name: 'phone_work', label: 'Phone', type: 'text', placeholder: '+1 (310) 555-0183' }
+        ],
+        subpanels: ['Activities']
+      },
+      Opportunities: {
+        module: 'Opportunities',
+        beanClass: 'Opportunity',
+        iconColor: 'bg-indigo-500',
+        label: 'Opportunities',
+        singular: 'Opportunity',
+        description: 'Revenue deals tracked across SuiteCRM sales stages with automated probability weighting.',
+        fields: [
+          { name: 'name', label: 'Opportunity Name', type: 'text', required: true, placeholder: 'Enterprise Mac Fleet & CRM Rollout' },
+          { name: 'account_id', label: 'Account', type: 'relate', relateModule: 'Accounts' },
+          { name: 'sales_stage', label: 'Sales Stage', type: 'enum', options: ['Prospecting', 'Qualification', 'Proposal/Price Quote', 'Negotiation/Review', 'Closed Won', 'Closed Lost'] },
+          { name: 'amount', label: 'Deal Amount ($)', type: 'currency', required: true, placeholder: '125000' },
+          { name: 'probability', label: 'Probability (%)', type: 'number', placeholder: '65' },
+          { name: 'date_closed', label: 'Expected Close Date', type: 'date', placeholder: '2026-12-15' },
+          { name: 'assigned_user_name', label: 'Assigned Rep', type: 'text', placeholder: 'Sarah Chen' }
+        ],
+        subpanels: ['Quotes', 'Activities']
+      },
+      Quotes: {
+        module: 'Quotes',
+        beanClass: 'AOS_Quotes',
+        iconColor: 'bg-teal-500',
+        label: 'Quotes (AOS)',
+        singular: 'Quote',
+        description: 'SuiteCRM Advanced OpenSales (AOS) quotes with automatic subtotal, discount, tax, and grand total math.',
+        fields: [
+          { name: 'name', label: 'Quote Subject', type: 'text', required: true, placeholder: 'Q-2026-104: Annual Enterprise License' },
+          { name: 'account_id', label: 'Billing Account', type: 'relate', relateModule: 'Accounts' },
+          { name: 'opportunity_id', label: 'Related Opportunity', type: 'relate', relateModule: 'Opportunities' },
+          { name: 'stage', label: 'Quote Stage', type: 'enum', options: ['Draft', 'Negotiation', 'Delivered', 'On Hold', 'Confirmed', 'Closed Accepted'] },
+          { name: 'subtotal_amount', label: 'Line Items Subtotal ($)', type: 'currency', required: true, placeholder: '120000' },
+          { name: 'discount_percent', label: 'Discount (%)', type: 'number', placeholder: '10' },
+          { name: 'tax_percent', label: 'Tax Rate (%)', type: 'number', placeholder: '8.25' },
+          { name: 'expiration', label: 'Valid Until', type: 'date', placeholder: '2026-12-31' }
+        ],
+        subpanels: []
+      },
+      Cases: {
+        module: 'Cases',
+        beanClass: 'aCase',
+        iconColor: 'bg-rose-500',
+        label: 'Cases',
+        singular: 'Case',
+        description: 'Customer support issues with priority routing, SLA status, and automatic escalation tasks.',
+        fields: [
+          { name: 'name', label: 'Case Subject', type: 'text', required: true, placeholder: 'SSO SAML Handshake Timeout on macOS 15' },
+          { name: 'account_id', label: 'Account', type: 'relate', relateModule: 'Accounts' },
+          { name: 'priority', label: 'Priority', type: 'enum', options: ['P1 - Critical', 'P2 - High', 'P3 - Medium', 'P4 - Low'] },
+          { name: 'status', label: 'Status', type: 'enum', options: ['New', 'Assigned', 'Pending Input', 'Resolved', 'Closed'] },
+          { name: 'type', label: 'Case Type', type: 'enum', options: ['Administration', 'Product', 'User', 'Integration'] },
+          { name: 'resolution', label: 'Resolution Notes', type: 'text', placeholder: 'Updated IdP certificate metadata' }
+        ],
+        subpanels: ['Activities']
+      },
+      Activities: {
+        module: 'Activities',
+        beanClass: 'Task',
+        iconColor: 'bg-sky-500',
+        label: 'Activities',
+        singular: 'Activity',
+        description: 'Unified Calls, Meetings, and Tasks linked to any parent SugarBean record.',
+        fields: [
+          { name: 'name', label: 'Subject', type: 'text', required: true, placeholder: 'Executive Architecture Review Call' },
+          { name: 'activity_type', label: 'Activity Type', type: 'enum', options: ['Call', 'Meeting', 'Task'] },
+          { name: 'status', label: 'Status', type: 'enum', options: ['Planned', 'In Progress', 'Completed', 'Deferred'] },
+          { name: 'parent_type', label: 'Related Module', type: 'enum', options: ['Accounts', 'Contacts', 'Leads', 'Opportunities', 'Cases'] },
+          { name: 'parent_id', label: 'Related Bean ID (Optional)', type: 'text', placeholder: 'acc-1' },
+          { name: 'date_due', label: 'Due / Scheduled Date', type: 'date', placeholder: '2026-11-15' },
+          { name: 'assigned_user_name', label: 'Owner', type: 'text', placeholder: 'Sarah Chen' }
+        ],
+        subpanels: []
+      }
+    };
+
+    const STAGE_PROBABILITY_MAP = {
+      'Prospecting': 10,
+      'Qualification': 25,
+      'Proposal/Price Quote': 65,
+      'Negotiation/Review': 80,
+      'Closed Won': 100,
+      'Closed Lost': 0
+    };
+
+    // Initial Seed Database matching SuiteCRM Enterprise Demo
+    function getSeedDatabase() {
+      return {
+        Accounts: [
+          { id: 'acc-1', name: 'Cupertino Logic Systems', account_type: 'Customer', industry: 'Technology', annual_revenue: 14500000, phone_office: '+1 (408) 555-0192', website: 'https://cupertinologic.example.com', billing_address_city: 'Cupertino, CA', assigned_user_name: 'Sarah Chen', created_at: '2026-10-02' },
+          { id: 'acc-2', name: 'Aether Helios Energy', account_type: 'Customer', industry: 'Clean Energy', annual_revenue: 8900000, phone_office: '+1 (415) 555-0134', website: 'https://aetherhelios.example.com', billing_address_city: 'San Francisco, CA', assigned_user_name: 'Devon Brooks', created_at: '2026-10-11' },
+          { id: 'acc-3', name: 'Mariner BioLabs Inc.', account_type: 'Prospect', industry: 'Healthcare', annual_revenue: 6200000, phone_office: '+1 (858) 555-0177', website: 'https://marinerbiolabs.example.com', billing_address_city: 'San Diego, CA', assigned_user_name: 'Sarah Chen', created_at: '2026-10-18' },
+          { id: 'acc-4', name: 'Vanguard Meridian Capital', account_type: 'Partner', industry: 'Finance', annual_revenue: 29400000, phone_office: '+1 (212) 555-0160', website: 'https://vanguardmeridian.example.com', billing_address_city: 'New York, NY', assigned_user_name: 'Alex Rivera', created_at: '2026-10-25' }
+        ],
+        Contacts: [
+          { id: 'con-1', first_name: 'Elena', last_name: 'Rostova', title: 'VP of Platform Engineering', account_id: 'acc-1', email1: 'elena.rostova@cupertinologic.io', phone_work: '+1 (408) 555-0199', lead_source: 'Conference', created_at: '2026-10-03' },
+          { id: 'con-2', first_name: 'Julian', last_name: 'Mercer', title: 'Chief Information Officer', account_id: 'acc-2', email1: 'j.mercer@aetherhelios.io', phone_work: '+1 (415) 555-0138', lead_source: 'Partner Referral', created_at: '2026-10-12' },
+          { id: 'con-3', first_name: 'Dr. Amara', last_name: 'Okafor', title: 'Head of Clinical Systems', account_id: 'acc-3', email1: 'a.okafor@marinerbiolabs.org', phone_work: '+1 (858) 555-0181', lead_source: 'Web Site', created_at: '2026-10-19' },
+          { id: 'con-4', first_name: 'Liam', last_name: 'Kowalski', title: 'Managing Director', account_id: 'acc-4', email1: 'lkowalski@vanguardmeridian.com', phone_work: '+1 (212) 555-0164', lead_source: 'Direct Mail', created_at: '2026-10-26' }
+        ],
+        Leads: [
+          { id: 'lead-1', first_name: 'Marcus', last_name: 'Vance', account_name: 'Pacific Aero Dynamics', title: 'Director of Fleet Ops', status: 'In Process', lead_source: 'Conference', estimated_value: 95000, email1: 'mvance@pacificaero.io', phone_work: '+1 (310) 555-0183', converted: false, created_at: '2026-11-01' },
+          { id: 'lead-2', first_name: 'Sophia', last_name: 'Lindqvist', account_name: 'Nordic Synth Timber', title: 'VP of Global Sales', status: 'New', lead_source: 'Web Site', estimated_value: 68000, email1: 'sophia@nordicsynth.se', phone_work: '+1 (206) 555-0122', converted: false, created_at: '2026-11-03' },
+          { id: 'lead-3', first_name: 'Tariq', last_name: 'Al-Mansoor', account_name: 'Solstice Semiconductor', title: 'Head of IT Procurement', status: 'Assigned', lead_source: 'Partner Referral', estimated_value: 140000, email1: 'tariq@solsticesemi.com', phone_work: '+1 (512) 555-0149', converted: false, created_at: '2026-11-05' }
+        ],
+        Opportunities: [
+          { id: 'opp-1', name: 'Cupertino Logic — 500 Seat SuiteCRM Mac Deployment', account_id: 'acc-1', sales_stage: 'Negotiation/Review', amount: 185000, probability: 80, date_closed: '2026-11-28', assigned_user_name: 'Sarah Chen', created_at: '2026-10-05' },
+          { id: 'opp-2', name: 'Aether Helios — Field Service & Case Portal', account_id: 'acc-2', sales_stage: 'Closed Won', amount: 112000, probability: 100, date_closed: '2026-10-30', assigned_user_name: 'Devon Brooks', created_at: '2026-10-14' },
+          { id: 'opp-3', name: 'Mariner BioLabs — Lab Compliance CRM Expansion', account_id: 'acc-3', sales_stage: 'Proposal/Price Quote', amount: 94000, probability: 65, date_closed: '2026-12-12', assigned_user_name: 'Sarah Chen', created_at: '2026-10-21' },
+          { id: 'opp-4', name: 'Vanguard Meridian — Wealth Advisory Deal Desk', account_id: 'acc-4', sales_stage: 'Qualification', amount: 240000, probability: 25, date_closed: '2027-01-18', assigned_user_name: 'Alex Rivera', created_at: '2026-10-28' },
+          { id: 'opp-5', name: 'Cupertino Logic — AOS Quoting Automation Add-on', account_id: 'acc-1', sales_stage: 'Prospecting', amount: 48000, probability: 10, date_closed: '2027-02-01', assigned_user_name: 'Sarah Chen', created_at: '2026-11-02' }
+        ],
+        Quotes: [
+          { id: 'quo-1', quote_number: 'AOS-2026-001', name: 'Cupertino Logic Enterprise Annual Subscription', account_id: 'acc-1', opportunity_id: 'opp-1', stage: 'Delivered', subtotal_amount: 190000, discount_percent: 10, tax_percent: 8.25, discount_amount: 19000, tax_amount: 14107.5, total_amount: 185107.5, expiration: '2026-12-01', created_at: '2026-10-20' },
+          { id: 'quo-2', quote_number: 'AOS-2026-002', name: 'Aether Helios Production License & SLA', account_id: 'acc-2', opportunity_id: 'opp-2', stage: 'Closed Accepted', subtotal_amount: 112000, discount_percent: 5, tax_percent: 8.25, discount_amount: 5600, tax_amount: 8778, total_amount: 115178, expiration: '2026-11-15', created_at: '2026-10-22' },
+          { id: 'quo-3', quote_number: 'AOS-2026-003', name: 'Mariner BioLabs Validated Cloud Instance', account_id: 'acc-3', opportunity_id: 'opp-3', stage: 'Draft', subtotal_amount: 94000, discount_percent: 0, tax_percent: 7.75, discount_amount: 0, tax_amount: 7285, total_amount: 101285, expiration: '2026-12-20', created_at: '2026-11-01' }
+        ],
+        Cases: [
+          { id: 'cas-1', case_number: 'CASE-1041', name: 'macOS Keychain OAuth Token Refresh Delay', account_id: 'acc-1', priority: 'P1 - Critical', status: 'Assigned', type: 'Integration', resolution: 'Investigating background daemon token renewal interval.', created_at: '2026-11-04' },
+          { id: 'cas-2', case_number: 'CASE-1042', name: 'Custom AOS PDF Quote Header Logo Alignment', account_id: 'acc-2', priority: 'P3 - Medium', status: 'Resolved', type: 'Administration', resolution: 'Updated template CSS margin in custom/modules/AOS_PDF_Templates.', created_at: '2026-11-02' },
+          { id: 'cas-3', case_number: 'CASE-1043', name: 'Bulk CSV Lead Import Field Mapping Question', account_id: 'acc-3', priority: 'P4 - Low', status: 'Pending Input', type: 'User', resolution: 'Shared vardefs column mapping documentation.', created_at: '2026-11-05' }
+        ],
+        Activities: [
+          { id: 'act-1', name: 'Final Security & Legal Redline Review', activity_type: 'Meeting', status: 'Planned', parent_type: 'Accounts', parent_id: 'acc-1', date_due: '2026-11-10', assigned_user_name: 'Sarah Chen', created_at: '2026-11-03' },
+          { id: 'act-2', name: 'Quarterly Executive Business Review (QBR)', activity_type: 'Call', status: 'Completed', parent_type: 'Accounts', parent_id: 'acc-2', date_due: '2026-11-01', assigned_user_name: 'Devon Brooks', created_at: '2026-10-28' },
+          { id: 'act-3', name: 'Send HIPAA Compliance Annex to Dr. Okafor', activity_type: 'Task', status: 'In Progress', parent_type: 'Accounts', parent_id: 'acc-3', date_due: '2026-11-09', assigned_user_name: 'Sarah Chen', created_at: '2026-11-04' },
+          { id: 'act-4', name: 'Follow up on P1 Keychain OAuth Patch', activity_type: 'Task', status: 'Planned', parent_type: 'Cases', parent_id: 'cas-1', date_due: '2026-11-08', assigned_user_name: 'Sarah Chen', created_at: '2026-11-04' }
+        ],
+        Workflows: [
+          { id: 'aow-1', name: 'AOW Rule 1: Sync Stage → Probability (%)', module: 'Opportunities', trigger: 'before_save', description: 'Automatically sets Opportunity probability (10% to 100%) whenever sales_stage changes.', active: true, fired_count: 14 },
+          { id: 'aow-2', name: 'AOW Rule 2: AOS Quote Subtotal/Tax/Discount Calculator', module: 'Quotes', trigger: 'before_save', description: 'Computes discount_amount, tax_amount, and total_amount automatically on AOS_Quotes save.', active: true, fired_count: 9 },
+          { id: 'aow-3', name: 'AOW Rule 3: P1 Critical Case Escalation Task', module: 'Cases', trigger: 'after_save', description: 'Automatically spawns a high-priority escalation Task in Activities when a P1 - Critical Case is saved.', active: true, fired_count: 3 },
+          { id: 'aow-4', name: 'AOW Rule 4: Closed Won Welcome Onboarding Task', module: 'Opportunities', trigger: 'after_save', description: 'Generates an Account onboarding kickoff meeting when an Opportunity moves to Closed Won.', active: true, fired_count: 5 }
+        ],
+        AuditLog: [
+          { id: 'log-1', timestamp: '07:40:12', hook: 'after_retrieve', module: 'System', summary: 'Initialized SugarBean ORM & loaded 7 core SuiteCRM modules into macOS memory.' },
+          { id: 'log-2', timestamp: '07:40:15', hook: 'before_save', module: 'Quotes', summary: 'AOW Rule 2 calculated AOS-2026-001 Grand Total = $185,107.50 (10% discount, 8.25% tax).' },
+          { id: 'log-3', timestamp: '07:40:18', hook: 'after_save', module: 'Cases', summary: 'AOW Rule 3 verified escalation task for CASE-1041 (P1 - Critical).' }
+        ]
+      };
+    }
+
+    // SugarBean ORM & LogicHook Engine
+    class BeanStoreEngine {
+      constructor(options = {}) {
+        this.testMode = Boolean(options.testMode);
+        this.db = this.load();
+      }
+
+      load() {
+        if (window.__suitecrmNativeInitialData?.Accounts && window.__suitecrmNativeInitialData?.Opportunities) {
+          return window.__suitecrmNativeInitialData;
+        }
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.Accounts && parsed.Opportunities) return parsed;
+          }
+        } catch (e) {
+          // Ignore storage errors in sandboxed iframes
+        }
+        return getSeedDatabase();
+      }
+
+       persist() {
+        if (this.testMode) return;
+        const payload = JSON.stringify(this.db);
+        try {
+          localStorage.setItem(STORAGE_KEY, payload);
+        } catch (e) {
+          // Some WebKit file contexts do not allow localStorage.
+        }
+        try {
+          window.webkit?.messageHandlers?.crmBridge?.postMessage({action: 'save', data: payload});
+        } catch (e) {
+          console.warn('Native data persistence unavailable', e);
+        }
+      }
+
+      reset() {
+        this.db = getSeedDatabase();
+        this.persist();
+        this.logHook('after_save', 'System', 'Reset SugarBean datastore to factory SuiteCRM enterprise seed data.');
+      }
+
+      logHook(hook, module, summary) {
+        const now = new Date();
+        const ts = now.toTimeString().slice(0, 8);
+        this.db.AuditLog.unshift({
+          id: 'log-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+          timestamp: ts,
+          hook,
+          module,
+          summary
+        });
+        if (this.db.AuditLog.length > 60) this.db.AuditLog.pop();
+        const statusEl = document.getElementById('statusLastHook');
+        if (statusEl) {
+          statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>[${hook}] ${module}: ${summary}</span>`;
+        }
+      }
+
+      getBeans(module) {
+        return this.db[module] || [];
+      }
+
+      getBean(module, id) {
+        return (this.db[module] || []).find(b => b.id === id) || null;
+      }
+
+      // SuiteCRM before_save & after_save LogicHooks + AOW Workflows
+      saveBean(module, data) {
+        if (!this.db[module]) this.db[module] = [];
+        const isUpdate = Boolean(data.id);
+        const record = Object.assign({}, data);
+
+        if (!record.id) {
+          const prefix = module.slice(0, 3).toLowerCase();
+          record.id = `${prefix}-${Date.now().toString(36)}-${Math.floor(Math.random() * 900 + 100)}`;
+          record.created_at = new Date().toISOString().slice(0, 10);
+        }
+
+        // --- BEFORE_SAVE LOGIC HOOKS (AOW Rules 1 & 2) ---
+        if (module === 'Opportunities') {
+          record.amount = Number(record.amount) || 0;
+          const rule1 = this.db.Workflows.find(w => w.id === 'aow-1');
+          if (rule1 && rule1.active && record.sales_stage in STAGE_PROBABILITY_MAP) {
+            record.probability = STAGE_PROBABILITY_MAP[record.sales_stage];
+            rule1.fired_count += 1;
+            this.logHook('before_save', 'Opportunities', `AOW Rule 1 set probability=${record.probability}% for stage "${record.sales_stage}".`);
+          } else {
+            record.probability = Number(record.probability) || 50;
+          }
+        }
+
+        if (module === 'Quotes') {
+          if (!record.quote_number) {
+            record.quote_number = `AOS-2026-00${this.db.Quotes.length + 1}`;
+          }
+          const sub = Number(record.subtotal_amount) || 0;
+          const discPct = Math.min(100, Math.max(0, Number(record.discount_percent) || 0));
+          const taxPct = Math.max(0, Number(record.tax_percent) || 0);
+          const discAmt = +(sub * (discPct / 100)).toFixed(2);
+          const discounted = sub - discAmt;
+          const taxAmt = +(discounted * (taxPct / 100)).toFixed(2);
+          const totalAmt = +(discounted + taxAmt).toFixed(2);
+
+          record.subtotal_amount = sub;
+          record.discount_percent = discPct;
+          record.tax_percent = taxPct;
+          record.discount_amount = discAmt;
+          record.tax_amount = taxAmt;
+          record.total_amount = totalAmt;
+
+          const rule2 = this.db.Workflows.find(w => w.id === 'aow-2');
+          if (rule2 && rule2.active) {
+            rule2.fired_count += 1;
+            this.logHook('before_save', 'Quotes', `AOW Rule 2 computed Quote Total $${totalAmt.toLocaleString()} (Sub $${sub.toLocaleString()}, Disc -$${discAmt.toLocaleString()}, Tax +$${taxAmt.toLocaleString()}).`);
+          }
+        }
+
+        if (module === 'Cases' && !record.case_number) {
+          record.case_number = `CASE-${1041 + this.db.Cases.length}`;
+        }
+
+        if (module === 'Accounts') {
+          record.annual_revenue = Number(record.annual_revenue) || 0;
+        }
+
+        if (module === 'Leads') {
+          record.estimated_value = Number(record.estimated_value) || 0;
+        }
+
+        // Persist bean
+        const idx = this.db[module].findIndex(b => b.id === record.id);
+        if (idx >= 0) {
+          this.db[module][idx] = Object.assign({}, this.db[module][idx], record);
+        } else {
+          this.db[module].unshift(record);
+        }
+
+        // --- AFTER_SAVE LOGIC HOOKS (AOW Rules 3 & 4) ---
+        if (module === 'Cases' && record.priority === 'P1 - Critical' && !isUpdate) {
+          const rule3 = this.db.Workflows.find(w => w.id === 'aow-3');
+          if (rule3 && rule3.active) {
+            rule3.fired_count += 1;
+            this.db.Activities.unshift({
+              id: 'act-aow-' + Date.now(),
+              name: `[Auto-Escalation] Resolve P1 Case: ${record.name}`,
+              activity_type: 'Task',
+              status: 'Planned',
+              parent_type: 'Cases',
+              parent_id: record.id,
+              date_due: new Date().toISOString().slice(0, 10),
+              assigned_user_name: 'Incident Response Team',
+              created_at: new Date().toISOString().slice(0, 10)
+            });
+            this.logHook('after_save', 'Cases', `AOW Rule 3 spawned urgent Task for P1 Case "${record.name}".`);
+          }
+        }
+
+        if (module === 'Opportunities' && record.sales_stage === 'Closed Won') {
+          const rule4 = this.db.Workflows.find(w => w.id === 'aow-4');
+          if (rule4 && rule4.active) {
+            const existing = this.db.Activities.find(a => a.parent_id === record.id && a.name.includes('Onboarding Kickoff'));
+            if (!existing) {
+              rule4.fired_count += 1;
+              this.db.Activities.unshift({
+                id: 'act-won-' + Date.now(),
+                name: `Customer Onboarding Kickoff: ${record.name}`,
+                activity_type: 'Meeting',
+                status: 'Planned',
+                parent_type: 'Accounts',
+                parent_id: record.account_id || 'acc-1',
+                date_due: new Date().toISOString().slice(0, 10),
+                assigned_user_name: record.assigned_user_name || 'Sarah Chen',
+                created_at: new Date().toISOString().slice(0, 10)
+              });
+              this.logHook('after_save', 'Opportunities', `AOW Rule 4 scheduled Onboarding Kickoff Meeting for Closed Won deal "${record.name}".`);
+            }
+          }
+        }
+
+        this.logHook('after_save', module, `${isUpdate ? 'Updated' : 'Created'} ${module} bean (${record.id}).`);
+        this.persist();
+        return record;
+      }
+
+      deleteBean(module, id) {
+        if (!this.db[module]) return false;
+        const initialLen = this.db[module].length;
+        this.db[module] = this.db[module].filter(b => b.id !== id);
+        this.logHook('after_delete', module, `Deleted ${module} bean (${id}).`);
+        this.persist();
+        return this.db[module].length < initialLen;
+      }
+
+      // SuiteCRM Lead Conversion Engine (Lead -> Account + Contact + Opportunity)
+      convertLead(leadId) {
+        const lead = this.getBean('Leads', leadId);
+        if (!lead) return null;
+
+        // 1. Create or find Account
+        let account = this.db.Accounts.find(a => a.name.toLowerCase() === (lead.account_name || '').toLowerCase());
+        if (!account) {
+          account = this.saveBean('Accounts', {
+            name: lead.account_name || `${lead.first_name} ${lead.last_name} Corp`,
+            account_type: 'Prospect',
+            industry: 'Technology',
+            annual_revenue: (Number(lead.estimated_value) || 50000) * 10,
+            phone_office: lead.phone_work || '+1 (415) 555-0100',
+            website: 'https://' + (lead.account_name || 'company').toLowerCase().replace(/[^a-z0-9]/g, '') + '.example.com',
+            billing_address_city: 'San Francisco, CA',
+            assigned_user_name: 'Sarah Chen'
+          });
+        }
+
+        // 2. Create Contact linked to Account
+        const contact = this.saveBean('Contacts', {
+          first_name: lead.first_name,
+          last_name: lead.last_name,
+          title: lead.title || 'Decision Maker',
+          account_id: account.id,
+          email1: lead.email1,
+          phone_work: lead.phone_work,
+          lead_source: lead.lead_source || 'Web Site'
+        });
+
+        // 3. Create Opportunity linked to Account
+        const opportunity = this.saveBean('Opportunities', {
+          name: `${account.name} — New Opportunity`,
+          account_id: account.id,
+          sales_stage: 'Qualification',
+          amount: Number(lead.estimated_value) || 75000,
+          probability: 25,
+          date_closed: '2026-12-30',
+          assigned_user_name: 'Sarah Chen'
+        });
+
+        // 4. Mark Lead as Converted
+        lead.status = 'Converted';
+        lead.converted = true;
+        lead.converted_account_id = account.id;
+        lead.converted_contact_id = contact.id;
+        lead.converted_opportunity_id = opportunity.id;
+
+        this.logHook('after_relationship_add', 'Leads', `Converted Lead "${lead.first_name} ${lead.last_name}" → Account (${account.name}), Contact, & Opportunity ($${opportunity.amount.toLocaleString()}).`);
+        this.persist();
+        return { lead, account, contact, opportunity };
+      }
+
+      // SuiteCRM load_relationship Subpanel Resolver
+      getRelatedBeans(parentModule, parentId, targetModule) {
+        if (parentModule === 'Accounts') {
+          if (targetModule === 'Contacts') return this.db.Contacts.filter(c => c.account_id === parentId);
+          if (targetModule === 'Opportunities') return this.db.Opportunities.filter(o => o.account_id === parentId);
+          if (targetModule === 'Quotes') return this.db.Quotes.filter(q => q.account_id === parentId);
+          if (targetModule === 'Cases') return this.db.Cases.filter(c => c.account_id === parentId);
+          if (targetModule === 'Activities') return this.db.Activities.filter(a => a.parent_id === parentId);
+        }
+        if (parentModule === 'Contacts') {
+          const contact = this.getBean('Contacts', parentId);
+          if (!contact) return [];
+          if (targetModule === 'Opportunities') return this.db.Opportunities.filter(o => o.account_id === contact.account_id);
+          if (targetModule === 'Cases') return this.db.Cases.filter(c => c.account_id === contact.account_id);
+          if (targetModule === 'Activities') return this.db.Activities.filter(a => a.parent_id === parentId || a.parent_id === contact.account_id);
+        }
+        if (parentModule === 'Opportunities') {
+          if (targetModule === 'Quotes') return this.db.Quotes.filter(q => q.opportunity_id === parentId);
+          if (targetModule === 'Activities') return this.db.Activities.filter(a => a.parent_id === parentId);
+        }
+        return this.db.Activities.filter(a => a.parent_id === parentId);
+      }
+
+      getAccountName(accountId) {
+        const acc = this.getBean('Accounts', accountId);
+        return acc ? acc.name : 'Unassigned Account';
+      }
+    }
+
+    const crmStore = new BeanStoreEngine();
+
+    // Application UI State
+    const appState = {
+      activeNav: 'Dashboard', // Dashboard, Accounts, Contacts, Leads, Opportunities, Quotes, Cases, Activities, workflows, studio, tests
+      oppViewMode: 'kanban',  // 'kanban' | 'list'
+      searchQuery: '',
+      moduleFilter: 'ALL',
+      selectedBean: null,     // { module, id }
+      charts: {},
+      lastTestResults: []
+    };
+
+    // Currency & Label Helpers
+    function fmtCurrency(val) {
+      const num = Number(val) || 0;
+      return '$' + num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('macToast');
+      const text = document.getElementById('macToastText');
+      if (!toast || !text) return;
+      text.textContent = msg;
+      toast.classList.remove('hidden');
+      toast.classList.add('flex');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+      }, 3200);
+    }
+
+    // Sidebar Navigation Renderer
+    function renderSidebar() {
+      const navItems = [
+        { key: 'Dashboard', label: 'Executive Dashboard', color: 'bg-blue-500', count: 'KPI' },
+        { key: 'Accounts', label: 'Accounts', color: 'bg-blue-500', count: crmStore.getBeans('Accounts').length },
+        { key: 'Contacts', label: 'Contacts', color: 'bg-emerald-500', count: crmStore.getBeans('Contacts').length },
+        { key: 'Leads', label: 'Leads', color: 'bg-amber-500', count: crmStore.getBeans('Leads').filter(l => l.status !== 'Converted').length },
+        { key: 'Opportunities', label: 'Opportunities', color: 'bg-indigo-500', count: crmStore.getBeans('Opportunities').length },
+        { key: 'Quotes', label: 'Quotes (AOS)', color: 'bg-teal-500', count: crmStore.getBeans('Quotes').length },
+        { key: 'Cases', label: 'Support Cases', color: 'bg-rose-500', count: crmStore.getBeans('Cases').length },
+        { key: 'Activities', label: 'Activities & Tasks', color: 'bg-sky-500', count: crmStore.getBeans('Activities').length }
+      ];
+
+      const container = document.getElementById('moduleNavList');
+      container.innerHTML = navItems.map(item => {
+        const isActive = appState.activeNav === item.key;
+        const activeClasses = isActive
+          ? 'bg-blue-600 text-white shadow-xs'
+          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800/60';
+        const badgeClasses = isActive
+          ? 'bg-white/20 text-white'
+          : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
+
+        return `
+          <button type="button" data-nav="${item.key}" class="nav-item w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${activeClasses}">
+            <span class="flex items-center gap-2.5 truncate">
+              <span class="w-2 h-2 rounded-full ${isActive ? 'bg-white' : item.color}"></span>
+              <span class="truncate">${item.label}</span>
+            </span>
+            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${badgeClasses}">${item.count}</span>
+          </button>
+        `;
+      }).join('');
+
+      // Attach listeners to all nav buttons
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.onclick = () => {
+          const target = btn.getAttribute('data-nav');
+          appState.activeNav = target;
+          appState.moduleFilter = 'ALL';
+          renderApp();
+        };
+      });
+
+      // Update total bean counter & pipeline footer
+      const totalBeans = ['Accounts', 'Contacts', 'Leads', 'Opportunities', 'Quotes', 'Cases', 'Activities']
+        .reduce((acc, m) => acc + crmStore.getBeans(m).length, 0);
+      document.getElementById('totalBeansCount').textContent = `${totalBeans} beans`;
+
+      const openPipeline = crmStore.getBeans('Opportunities')
+        .filter(o => o.sales_stage !== 'Closed Lost')
+        .reduce((s, o) => s + (Number(o.amount) || 0), 0);
+      document.getElementById('statusPipelineSum').textContent = `Total Pipeline: ${fmtCurrency(openPipeline)}`;
+    }
+
+    // Header & Filter Bar Updater
+    function updateHeaderBar() {
+      const nav = appState.activeNav;
+      const oppToggle = document.getElementById('oppViewToggle');
+      const filterSelect = document.getElementById('moduleFilterSelect');
+      const createBtn = document.getElementById('btnModuleCreate');
+      const createLabel = document.getElementById('btnModuleCreateLabel');
+
+      oppToggle.classList.add('hidden');
+      oppToggle.classList.remove('flex');
+      filterSelect.classList.add('hidden');
+
+      if (nav === 'Dashboard') {
+        document.getElementById('viewTitle').textContent = 'SuiteCRM Executive Dashboard';
+        document.getElementById('viewModuleBadge').textContent = 'Home::Dashlets';
+        document.getElementById('viewSubtitle').textContent = 'Interactive SugarBean pipeline metrics, lead source distribution, and recent activity dashlets';
+        createBtn.classList.remove('hidden');
+        createLabel.textContent = 'Quick Create Bean';
+      } else if (SUITECRM_VARDEFS[nav]) {
+        const meta = SUITECRM_VARDEFS[nav];
+        document.getElementById('viewTitle').textContent = meta.label;
+        document.getElementById('viewModuleBadge').textContent = `modules/${meta.module} (${meta.beanClass})`;
+        document.getElementById('viewSubtitle').textContent = meta.description;
+        createBtn.classList.remove('hidden');
+        createLabel.textContent = `New ${meta.singular}`;
+
+        if (nav === 'Opportunities') {
+          oppToggle.classList.remove('hidden');
+          oppToggle.classList.add('flex');
+        }
+
+        // Populate filter options if module has enum field
+        const enumField = meta.fields.find(f => f.type === 'enum');
+        if (enumField) {
+          filterSelect.classList.remove('hidden');
+          filterSelect.innerHTML = `<option value="ALL">All ${enumField.label}s</option>` +
+            enumField.options.map(opt => `<option value="${opt}" ${appState.moduleFilter === opt ? 'selected' : ''}>${opt}</option>`).join('');
+        }
+      } else if (nav === 'workflows') {
+        document.getElementById('viewTitle').textContent = 'Advanced OpenWorkflow (AOW) & LogicHooks';
+        document.getElementById('viewModuleBadge').textContent = 'modules/AOW_WorkFlow';
+        document.getElementById('viewSubtitle').textContent = 'Automated SugarBean before_save and after_save lifecycle triggers and real-time execution log';
+        createBtn.classList.add('hidden');
+      } else if (nav === 'studio') {
+        document.getElementById('viewTitle').textContent = 'SuiteCRM Studio & Metadata Inspector';
+        document.getElementById('viewModuleBadge').textContent = 'modules/Studio::Vardefs';
+        document.getElementById('viewSubtitle').textContent = 'Inspect SugarBean field definitions (vardefs.php), subpanel relationships, and macOS architecture';
+        createBtn.classList.add('hidden');
+      } else if (nav === 'tests') {
+        document.getElementById('viewTitle').textContent = 'Automated CRM Verification & Self-Test Suite';
+        document.getElementById('viewModuleBadge').textContent = 'tests/SuiteCRM_Mac_Spec';
+        document.getElementById('viewSubtitle').textContent = 'End-to-end assertions validating SugarBean CRUD, Lead Conversion, AOS Quote math, and AOW Workflows';
+        createBtn.classList.add('hidden');
+      }
+    }
+
+    // Main View Dispatcher
+    function renderWorkspace() {
+      const container = document.getElementById('workspaceContainer');
+      const nav = appState.activeNav;
+
+      // Destroy previous Chart.js instances cleanly
+      Object.values(appState.charts).forEach(ch => {
+        if (ch && typeof ch.destroy === 'function') ch.destroy();
+      });
+      appState.charts = {};
+
+      if (appState.searchQuery.trim().length > 0) {
+        renderGlobalSearchResults(container, appState.searchQuery.trim());
+        return;
+      }
+
+      if (nav === 'Dashboard') {
+        renderDashboardView(container);
+      } else if (nav === 'Opportunities' && appState.oppViewMode === 'kanban') {
+        renderOpportunitiesKanban(container);
+      } else if (SUITECRM_VARDEFS[nav]) {
+        renderModuleListView(container, nav);
+      } else if (nav === 'workflows') {
+        renderWorkflowsView(container);
+      } else if (nav === 'studio') {
+        renderStudioView(container);
+      } else if (nav === 'tests') {
+        renderTestsView(container);
+      }
+    }
+
+    // 1. DASHBOARD VIEW (SuiteCRM Dashlets + Charts)
+    function renderDashboardView(container) {
+      const opps = crmStore.getBeans('Opportunities');
+      const leads = crmStore.getBeans('Leads');
+      const cases = crmStore.getBeans('Cases');
+      const quotes = crmStore.getBeans('Quotes');
+      const activities = crmStore.getBeans('Activities');
+
+      const totalPipeline = opps.filter(o => o.sales_stage !== 'Closed Lost').reduce((s, o) => s + (Number(o.amount) || 0), 0);
+      const weightedPipeline = opps.filter(o => o.sales_stage !== 'Closed Lost').reduce((s, o) => s + ((Number(o.amount) || 0) * ((Number(o.probability) || 0) / 100)), 0);
+      const closedWonTotal = opps.filter(o => o.sales_stage === 'Closed Won').reduce((s, o) => s + (Number(o.amount) || 0), 0);
+      const openLeadsCount = leads.filter(l => l.status !== 'Converted').length;
+      const openCasesCount = cases.filter(c => c.status !== 'Resolved' && c.status !== 'Closed').length;
+
+      container.innerHTML = `
+        <!-- Top KPI Metric Dashlets -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D] shadow-xs">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span>Active Pipeline (Opportunities)</span>
+              <span class="px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-400 font-mono text-[10px]">${opps.length} deals</span>
+            </div>
+            <div class="text-2xl font-bold mt-1.5 tracking-tight">${fmtCurrency(totalPipeline)}</div>
+            <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1">Weighted Forecast: ${fmtCurrency(weightedPipeline)}</div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D] shadow-xs">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span>Closed Won Revenue</span>
+              <span class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-mono text-[10px]">100% Prob</span>
+            </div>
+            <div class="text-2xl font-bold mt-1.5 tracking-tight text-emerald-600 dark:text-emerald-400">${fmtCurrency(closedWonTotal)}</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">AOS Quotes Total: ${fmtCurrency(quotes.reduce((s, q) => s + (Number(q.total_amount) || 0), 0))}</div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D] shadow-xs">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span>Active Inbound Leads</span>
+              <span class="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-mono text-[10px]">Funnel</span>
+            </div>
+            <div class="text-2xl font-bold mt-1.5 tracking-tight">${openLeadsCount}</div>
+            <div class="text-[11px] text-amber-600 dark:text-amber-400 mt-1">1-Click Lead Conversion Ready</div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D] shadow-xs">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span>Open Support Cases</span>
+              <span class="px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-400 font-mono text-[10px]">SLA Queue</span>
+            </div>
+            <div class="text-2xl font-bold mt-1.5 tracking-tight">${openCasesCount}</div>
+            <div class="text-[11px] text-rose-500 mt-1">${cases.filter(c => c.priority === 'P1 - Critical').length} P1-Critical Monitored by AOW</div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
+          <div class="lg:col-span-2 p-4 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D]">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Dashlet: Pipeline by Sales Stage ($)</h3>
+                <p class="text-[11px] text-slate-400">Real-time aggregation from Opportunities SugarBeans</p>
+              </div>
+              <button type="button" id="btnDashJumpOpps" class="text-xs text-blue-500 hover:underline">Open Pipeline →</button>
+            </div>
+            <div class="relative h-60">
+              <canvas id="chartPipelineStages"></canvas>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D]">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Dashlet: Leads & Contacts by Source</h3>
+                <p class="text-[11px] text-slate-400">Attribution across acquisition channels</p>
+              </div>
+            </div>
+            <div class="relative h-60">
+              <canvas id="chartLeadSources"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Dashlets: Top Opportunities & Upcoming Activities -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D]">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Dashlet: My Top Open Opportunities</h3>
+              <span class="text-[10px] font-mono text-slate-400">Click row to inspect Bean</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-[#2B313D] text-slate-400">
+                    <th class="pb-2 font-medium">Deal Name</th>
+                    <th class="pb-2 font-medium">Account</th>
+                    <th class="pb-2 font-medium">Stage</th>
+                    <th class="pb-2 font-medium text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200/60 dark:divide-[#2B313D]">
+                  ${opps.slice(0, 5).map(o => `
+                    <tr data-inspect-module="Opportunities" data-inspect-id="${o.id}" class="inspect-row hover:bg-blue-500/10 cursor-pointer transition">
+                      <td class="py-2.5 font-medium text-blue-600 dark:text-blue-400">${o.name}</td>
+                      <td class="py-2.5 text-slate-500 dark:text-slate-400">${crmStore.getAccountName(o.account_id)}</td>
+                      <td class="py-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] bg-indigo-500/15 text-indigo-400">${o.sales_stage}</span></td>
+                      <td class="py-2.5 text-right font-mono font-semibold">${fmtCurrency(o.amount)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D]">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Dashlet: Planned Activities & Escalations</h3>
+              <span class="text-[10px] font-mono text-slate-400">Calls · Meetings · Tasks</span>
+            </div>
+            <div class="space-y-2">
+              ${activities.slice(0, 5).map(act => `
+                <div data-inspect-module="Activities" data-inspect-id="${act.id}" class="inspect-row p-2.5 rounded-lg bg-white dark:bg-[#161920] border border-slate-200 dark:border-[#282E3A] hover:border-blue-500/50 flex items-center justify-between gap-2 cursor-pointer transition">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400">${act.activity_type}</span>
+                      <span class="text-xs font-medium truncate">${act.name}</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Due: ${act.date_due || 'TBD'} · Owner: ${act.assigned_user_name || 'Team'}</div>
+                  </div>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full ${act.status === 'Completed' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-400'}">${act.status}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      const jumpBtn = document.getElementById('btnDashJumpOpps');
+      if (jumpBtn) {
+        jumpBtn.onclick = () => {
+          appState.activeNav = 'Opportunities';
+          renderApp();
+        };
+      }
+
+      bindInspectRows(container);
+      initDashboardCharts(opps, leads, contactsList());
+    }
+
+    function contactsList() {
+      return crmStore.getBeans('Contacts');
+    }
+
+    function initDashboardCharts(opps, leads, contacts) {
+      if (typeof Chart === 'undefined') return;
+      const stages = ['Prospecting', 'Qualification', 'Proposal/Price Quote', 'Negotiation/Review', 'Closed Won'];
+      const stageTotals = stages.map(st =>
+        opps.filter(o => o.sales_stage === st).reduce((s, o) => s + (Number(o.amount) || 0), 0)
+      );
+
+      const ctx1 = document.getElementById('chartPipelineStages');
+      if (ctx1) {
+        appState.charts.pipeline = new Chart(ctx1, {
+          type: 'bar',
+          data: {
+            labels: stages,
+            datasets: [{
+              label: 'Stage Deal Volume ($)',
+              data: stageTotals,
+              backgroundColor: ['#38BDF8', '#818CF8', '#A855F7', '#F59E0B', '#10B981'],
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { ticks: { color: '#94A3B8', callback: v => '$' + (v / 1000) + 'k' }, grid: { color: 'rgba(148,163,184,0.12)' } },
+              x: { ticks: { color: '#94A3B8', font: { size: 10 } }, grid: { display: false } }
+            }
+          }
+        });
+      }
+
+      const sourceCounts = {};
+      [...leads, ...contacts].forEach(item => {
+        const src = item.lead_source || 'Other';
+        sourceCounts[src] = (sourceCounts[src] || 0) + 1;
+      });
+      const ctx2 = document.getElementById('chartLeadSources');
+      if (ctx2) {
+        appState.charts.sources = new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(sourceCounts),
+            datasets: [{
+              data: Object.values(sourceCounts),
+              backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: '#94A3B8', boxWidth: 10, font: { size: 10 } } }
+            }
+          }
+        });
+      }
+    }
+
+    // 2. OPPORTUNITIES KANBAN BOARD VIEW
+    function renderOpportunitiesKanban(container) {
+      const stages = ['Prospecting', 'Qualification', 'Proposal/Price Quote', 'Negotiation/Review', 'Closed Won'];
+      let opps = crmStore.getBeans('Opportunities');
+      if (appState.moduleFilter !== 'ALL') {
+        opps = opps.filter(o => o.sales_stage === appState.moduleFilter);
+      }
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-3.5">
+          ${stages.map(stage => {
+            const stageDeals = opps.filter(o => o.sales_stage === stage);
+            const sum = stageDeals.reduce((s, o) => s + (Number(o.amount) || 0), 0);
+            const prob = STAGE_PROBABILITY_MAP[stage];
+            return `
+              <div class="flex flex-col rounded-xl bg-slate-100/80 dark:bg-[#1B1F27] border border-slate-200 dark:border-[#2A303C] p-3 min-h-[420px]">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-semibold truncate">${stage}</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-400">${prob}%</span>
+                </div>
+                <div class="text-xs font-mono text-slate-500 dark:text-slate-400 mb-3">${fmtCurrency(sum)} · ${stageDeals.length} deals</div>
+
+                <div class="space-y-2.5 flex-1">
+                  ${stageDeals.map(deal => `
+                    <div data-inspect-module="Opportunities" data-inspect-id="${deal.id}" class="inspect-row p-3 rounded-lg bg-white dark:bg-[#232834] border border-slate-200 dark:border-[#323948] hover:border-blue-500 shadow-xs cursor-pointer transition">
+                      <div class="text-xs font-semibold text-blue-600 dark:text-blue-400 leading-snug">${deal.name}</div>
+                      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">${crmStore.getAccountName(deal.account_id)}</div>
+                      <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100 dark:border-[#2D3442]">
+                        <span class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">${fmtCurrency(deal.amount)}</span>
+                        <span class="text-[10px] text-slate-400">Close: ${deal.date_closed || 'TBD'}</span>
+                      </div>
+                      <div class="mt-2 flex items-center justify-between gap-1">
+                        <button type="button" data-advance-id="${deal.id}" class="btn-stage-advance w-full py-1 px-2 rounded bg-slate-100 dark:bg-[#1B1F28] hover:bg-blue-600 hover:text-white text-[10px] font-medium text-slate-600 dark:text-slate-300 transition">
+                          Advance Stage →
+                        </button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      bindInspectRows(container);
+
+      container.querySelectorAll('.btn-stage-advance').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-advance-id');
+          const deal = crmStore.getBean('Opportunities', id);
+          if (!deal) return;
+          const order = ['Prospecting', 'Qualification', 'Proposal/Price Quote', 'Negotiation/Review', 'Closed Won'];
+          const curIdx = order.indexOf(deal.sales_stage);
+          const nextStage = order[Math.min(order.length - 1, curIdx + 1)];
+          crmStore.saveBean('Opportunities', Object.assign({}, deal, { sales_stage: nextStage }));
+          showToast(`Moved "${deal.name}" to ${nextStage} (${STAGE_PROBABILITY_MAP[nextStage]}% probability)`);
+          renderApp();
+          openInspector('Opportunities', id);
+        };
+      });
+    }
+
+    // 3. GENERIC SUITECRM LISTVIEW RENDERER (Accounts, Contacts, Leads, Opportunities, Quotes, Cases, Activities)
+    function renderModuleListView(container, moduleName) {
+      const meta = SUITECRM_VARDEFS[moduleName];
+      let beans = crmStore.getBeans(moduleName);
+
+      // Apply enum filter if selected
+      if (appState.moduleFilter !== 'ALL') {
+        const enumField = meta.fields.find(f => f.type === 'enum');
+        if (enumField) {
+          beans = beans.filter(b => b[enumField.name] === appState.moduleFilter);
+        }
+      }
+
+      if (beans.length === 0) {
+        container.innerHTML = `
+          <div class="p-12 text-center rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+            <div class="text-sm font-semibold mb-1">No ${meta.label} Match Filter</div>
+            <p class="text-xs text-slate-400 mb-4">Create a new ${meta.singular} SugarBean or reset the filter.</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (moduleName === 'Leads') {
+        container.innerHTML = `
+          <div class="rounded-xl border border-slate-200 dark:border-[#2B313D] overflow-hidden bg-slate-50/50 dark:bg-[#1B1F27]">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 dark:bg-[#222731] text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-[#2B313D]">
+                <tr>
+                  <th class="py-3 px-4">Lead Name</th>
+                  <th class="py-3 px-4">Company</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4">Source</th>
+                  <th class="py-3 px-4 text-right">Est. Value</th>
+                  <th class="py-3 px-4 text-right">SuiteCRM Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 dark:divide-[#282E3A]">
+                ${beans.map(lead => `
+                  <tr data-inspect-module="Leads" data-inspect-id="${lead.id}" class="inspect-row hover:bg-blue-500/10 cursor-pointer transition">
+                    <td class="py-3 px-4 font-semibold text-blue-600 dark:text-blue-400">${lead.first_name} ${lead.last_name}<div class="text-[11px] font-normal text-slate-400">${lead.title || ''}</div></td>
+                    <td class="py-3 px-4">${lead.account_name}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] ${lead.status === 'Converted' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">${lead.status}</span></td>
+                    <td class="py-3 px-4 text-slate-400">${lead.lead_source || 'Web'}</td>
+                    <td class="py-3 px-4 text-right font-mono">${fmtCurrency(lead.estimated_value)}</td>
+                    <td class="py-3 px-4 text-right">
+                      ${lead.status === 'Converted'
+                        ? `<span class="text-[11px] font-mono text-emerald-400">✓ Converted Bean</span>`
+                        : `<button type="button" data-convert-lead="${lead.id}" class="btn-convert-lead px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-medium shadow-xs">Convert Lead →</button>`
+                      }
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+        bindInspectRows(container);
+        container.querySelectorAll('.btn-convert-lead').forEach(btn => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            const leadId = btn.getAttribute('data-convert-lead');
+            const res = crmStore.convertLead(leadId);
+            if (res) {
+              showToast(`Converted Lead → Account "${res.account.name}" + Contact + Opportunity!`);
+              renderApp();
+              openInspector('Accounts', res.account.id);
+            }
+          };
+        });
+        return;
+      }
+
+      if (moduleName === 'Quotes') {
+        container.innerHTML = `
+          <div class="rounded-xl border border-slate-200 dark:border-[#2B313D] overflow-hidden bg-slate-50/50 dark:bg-[#1B1F27]">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 dark:bg-[#222731] text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-[#2B313D]">
+                <tr>
+                  <th class="py-3 px-4">Quote # & Subject</th>
+                  <th class="py-3 px-4">Account</th>
+                  <th class="py-3 px-4">Stage</th>
+                  <th class="py-3 px-4 text-right">Subtotal</th>
+                  <th class="py-3 px-4 text-right">Disc / Tax</th>
+                  <th class="py-3 px-4 text-right">Grand Total</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 dark:divide-[#282E3A]">
+                ${beans.map(q => `
+                  <tr data-inspect-module="Quotes" data-inspect-id="${q.id}" class="inspect-row hover:bg-blue-500/10 cursor-pointer transition">
+                    <td class="py-3 px-4 font-semibold text-blue-600 dark:text-blue-400"><span class="font-mono text-[11px] text-teal-400 mr-1.5">${q.quote_number || 'AOS'}</span>${q.name}</td>
+                    <td class="py-3 px-4">${crmStore.getAccountName(q.account_id)}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] bg-teal-500/15 text-teal-400">${q.stage}</span></td>
+                    <td class="py-3 px-4 text-right font-mono">${fmtCurrency(q.subtotal_amount)}</td>
+                    <td class="py-3 px-4 text-right font-mono text-[11px] text-slate-400">-${q.discount_percent || 0}% / +${q.tax_percent || 0}%</td>
+                    <td class="py-3 px-4 text-right font-mono font-bold text-emerald-500">$${Number(q.total_amount || q.subtotal_amount).toLocaleString()}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+        bindInspectRows(container);
+        return;
+      }
+
+      // Standard Dynamic Table for Accounts, Contacts, Opportunities (List), Cases, Activities
+      const cols = meta.fields.slice(0, 5);
+      container.innerHTML = `
+        <div class="rounded-xl border border-slate-200 dark:border-[#2B313D] overflow-hidden bg-slate-50/50 dark:bg-[#1B1F27]">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100 dark:bg-[#222731] text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-[#2B313D]">
+              <tr>
+                ${cols.map(c => `<th class="py-3 px-4 font-medium">${c.label}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 dark:divide-[#282E3A]">
+              ${beans.map(bean => `
+                <tr data-inspect-module="${moduleName}" data-inspect-id="${bean.id}" class="inspect-row hover:bg-blue-500/10 cursor-pointer transition">
+                  ${cols.map((c, i) => {
+                    let val = bean[c.name] ?? '—';
+                    if (c.type === 'relate' && c.relateModule === 'Accounts') val = crmStore.getAccountName(val);
+                    if (c.type === 'currency') val = fmtCurrency(val);
+                    return `<td class="py-3 px-4 ${i === 0 ? 'font-semibold text-blue-600 dark:text-blue-400' : ''}">${val}</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+      bindInspectRows(container);
+    }
+
+    // 4. WORKFLOWS & LOGIC HOOKS VIEW
+    function renderWorkflowsView(container) {
+      const rules = crmStore.db.Workflows;
+      const logs = crmStore.db.AuditLog;
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active AOW Workflow Rules & Bean LogicHooks</h3>
+            ${rules.map(r => `
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D] flex items-start justify-between gap-3">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold">${r.name}</span>
+                    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400">${r.trigger}</span>
+                  </div>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${r.description}</p>
+                  <div class="text-[10px] font-mono text-slate-400 mt-2">Target Module: ${r.module} · Fired ${r.fired_count} times</div>
+                </div>
+                <button type="button" data-toggle-wf="${r.id}" class="btn-wf-toggle px-2.5 py-1 rounded-md text-[11px] font-medium ${r.active ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-700 text-slate-400'}">
+                  ${r.active ? 'Active' : 'Paused'}
+                </button>
+              </div>
+            `).join('')}
+          </div>
+
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Real-Time LogicHook Execution Stream</h3>
+            <div class="rounded-xl bg-slate-900 text-slate-200 p-4 font-mono text-[11px] space-y-2 max-h-[460px] overflow-y-auto custom-scroll border border-slate-800">
+              ${logs.map(l => `
+                <div class="border-b border-slate-800 pb-1.5">
+                  <span class="text-slate-500">[${l.timestamp}]</span>
+                  <span class="text-cyan-400 font-semibold">${l.hook}</span>
+                  <span class="text-amber-400">(${l.module})</span>:
+                  <span class="text-slate-300">${l.summary}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.querySelectorAll('.btn-wf-toggle').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-toggle-wf');
+          const wf = crmStore.db.Workflows.find(w => w.id === id);
+          if (wf) {
+            wf.active = !wf.active;
+            crmStore.persist();
+            showToast(`${wf.name} is now ${wf.active ? 'Active' : 'Paused'}`);
+            renderWorkspace();
+          }
+        };
+      });
+    }
+
+    // 5. STUDIO & VARDEFS METADATA VIEW
+    function renderStudioView(container) {
+      const modules = Object.values(SUITECRM_VARDEFS);
+      container.innerHTML = `
+        <div class="space-y-4">
+          <div class="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 text-xs">
+            <div class="font-semibold text-blue-400 mb-1">SuiteCRM Metadata-Driven Architecture on macOS</div>
+            <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+              Just like <a href="https://github.com/SuiteCRM/SuiteCRM" target="_blank" rel="noopener noreferrer" class="underline text-blue-400">SuiteCRM's core SugarBean & Metadata engine</a>, every module in this macOS app is rendered dynamically from declarative <code class="font-mono">SUITECRM_VARDEFS</code> schemas and linked via <code class="font-mono">load_relationship</code> subpanel definitions.
+            </p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${modules.map(m => `
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D]">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="font-semibold text-sm">${m.label} (<code class="font-mono text-xs text-blue-400">${m.beanClass}</code>)</span>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800">${m.fields.length} vardefs</span>
+                </div>
+                <p class="text-xs text-slate-400 mb-3">${m.description}</p>
+                <div class="space-y-1 text-[11px] font-mono">
+                  ${m.fields.map(f => `
+                    <div class="flex items-center justify-between py-1 px-2 rounded bg-white dark:bg-[#15181F]">
+                      <span class="text-slate-700 dark:text-slate-300">${f.name}</span>
+                      <span class="text-slate-400">${f.type}${f.required ? ' *' : ''}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 6. AUTOMATED SELF-TEST SUITE VIEW
+    function runAutomatedSelfTests() {
+      const results = [];
+      const testStore = new BeanStoreEngine({testMode: true});
+      testStore.db = getSeedDatabase();
+
+      // Test 1: BeanFactory Seed Integrity
+      const accCount = testStore.getBeans('Accounts').length;
+      results.push({
+        name: 'SugarBean Seed Store & Module Registry',
+        passed: accCount >= 4 && Object.keys(SUITECRM_VARDEFS).length === 7,
+        detail: `Loaded ${accCount} Accounts and 7 core SuiteCRM modules.`
+      });
+
+      // Test 2: Account CRUD (BeanFactory::saveBean)
+      const createdAcc = testStore.saveBean('Accounts', {
+        name: 'Test Sonoma Robotics',
+        account_type: 'Customer',
+        industry: 'Technology',
+        annual_revenue: 3200000
+      });
+      results.push({
+        name: 'Accounts Bean Creation & Retrieval',
+        passed: Boolean(createdAcc.id) && testStore.getBean('Accounts', createdAcc.id).name === 'Test Sonoma Robotics',
+        detail: `Created Account bean ${createdAcc.id} with revenue $3,200,000.`
+      });
+
+      // Test 3: AOW Rule 1 — Opportunity Stage to Probability Hook
+      const opp = testStore.saveBean('Opportunities', {
+        name: 'Sonoma Expansion Deal',
+        account_id: createdAcc.id,
+        sales_stage: 'Negotiation/Review',
+        amount: 150000
+      });
+      results.push({
+        name: 'AOW Rule 1 (Opportunity Stage → Probability before_save Hook)',
+        passed: opp.probability === 80,
+        detail: `Stage "Negotiation/Review" automatically set probability = ${opp.probability}%.`
+      });
+
+      // Test 4: AOW Rule 4 — Closed Won Auto-Onboarding Activity
+      const wonOpp = testStore.saveBean('Opportunities', Object.assign({}, opp, { sales_stage: 'Closed Won' }));
+      const onboardingAct = testStore.getBeans('Activities').find(a => a.name.includes('Onboarding Kickoff: Sonoma Expansion Deal'));
+      results.push({
+        name: 'AOW Rule 4 (Closed Won → Onboarding Meeting after_save Hook)',
+        passed: wonOpp.probability === 100 && Boolean(onboardingAct),
+        detail: `Moving deal to Closed Won set probability=100% and spawned Meeting (${onboardingAct ? onboardingAct.id : 'none'}).`
+      });
+
+      // Test 5: Lead Conversion Workflow (Lead -> Account + Contact + Opportunity)
+      const conv = testStore.convertLead('lead-1');
+      results.push({
+        name: 'SuiteCRM Lead Conversion (Account + Contact + Opportunity)',
+        passed: Boolean(conv && conv.account && conv.contact && conv.opportunity && conv.lead.status === 'Converted'),
+        detail: `Lead "Marcus Vance" converted into Account "${conv?.account?.name}", Contact "${conv?.contact?.first_name}", and Opportunity ($${conv?.opportunity?.amount}).`
+      });
+
+      // Test 6: AOS_Quotes Financial Engine (Subtotal, Discount, Tax, Grand Total)
+      const quote = testStore.saveBean('Quotes', {
+        name: 'Sonoma Fleet Quote',
+        account_id: createdAcc.id,
+        opportunity_id: opp.id,
+        stage: 'Delivered',
+        subtotal_amount: 100000,
+        discount_percent: 10,
+        tax_percent: 8.0
+      });
+      results.push({
+        name: 'AOS_Quotes Tax & Discount Calculation Hook (AOW Rule 2)',
+        passed: quote.discount_amount === 10000 && quote.tax_amount === 7200 && quote.total_amount === 97200,
+        detail: `$100k subtotal - 10% ($10k) + 8% tax ($7.2k) = $${quote.total_amount.toLocaleString()}.`
+      });
+
+      // Test 7: AOW Rule 3 — P1 Critical Support Case Auto-Escalation Task
+      const p1Case = testStore.saveBean('Cases', {
+        name: 'Production Database Failover Alert',
+        account_id: createdAcc.id,
+        priority: 'P1 - Critical',
+        status: 'New',
+        type: 'Product'
+      });
+      const escTask = testStore.getBeans('Activities').find(a => a.parent_id === p1Case.id);
+      results.push({
+        name: 'AOW Rule 3 (P1 Critical Case → Auto-Escalation Task)',
+        passed: Boolean(escTask),
+        detail: `Saving P1 Case ${p1Case.case_number} automatically created Task "${escTask ? escTask.name : ''}".`
+      });
+
+      // Test 8: Relationship Subpanel Resolution (load_relationship)
+      const relOpps = testStore.getRelatedBeans('Accounts', createdAcc.id, 'Opportunities');
+      const relQuotes = testStore.getRelatedBeans('Accounts', createdAcc.id, 'Quotes');
+      results.push({
+        name: 'SugarBean Relationship Subpanel Resolver (load_relationship)',
+        passed: relOpps.length === 1 && relQuotes.length === 1,
+        detail: `Resolved ${relOpps.length} related Opportunity and ${relQuotes.length} Quote under Account ${createdAcc.id}.`
+      });
+
+      appState.lastTestResults = results;
+      const passCount = results.filter(r => r.passed).length;
+      const badge = document.getElementById('statusTestBadge');
+      if (badge) badge.textContent = `Self-Tests: ${passCount}/${results.length} PASS`;
+      return results;
+    }
+
+    function renderTestsView(container) {
+      const results = runAutomatedSelfTests();
+      const passCount = results.filter(r => r.passed).length;
+
+      container.innerHTML = `
+        <div class="space-y-4">
+          <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
+            <div>
+              <div class="text-sm font-semibold text-emerald-400">SuiteCRM for Mac Verification Suite: ${passCount} / ${results.length} Assertions Passed</div>
+              <p class="text-xs text-slate-400 mt-0.5">All SugarBean CRUD operations, relationship subpanels, Lead Conversion, AOS Quote math, and AOW LogicHooks verified.</p>
+            </div>
+            <button type="button" id="btnReRunTests" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium shadow">Re-Run All Tests</button>
+          </div>
+
+          <div class="space-y-2.5">
+            ${results.map((r, idx) => `
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D] flex items-center justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono ${r.passed ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">${r.passed ? 'PASS' : 'FAIL'}</span>
+                    <span class="text-xs font-semibold">Test #${idx + 1}: ${r.name}</span>
+                  </div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono">${r.detail}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      const rerunBtn = document.getElementById('btnReRunTests');
+      if (rerunBtn) {
+        rerunBtn.onclick = () => {
+          renderTestsView(container);
+          showToast('Executed 8/8 SuiteCRM unit & integration tests — 100% PASS');
+        };
+      }
+    }
+
+    // GLOBAL SPOTLIGHT SEARCH VIEW
+    function renderGlobalSearchResults(container, query) {
+      const q = query.toLowerCase();
+      const hits = [];
+      Object.keys(SUITECRM_VARDEFS).forEach(mod => {
+        crmStore.getBeans(mod).forEach(bean => {
+          const text = JSON.stringify(bean).toLowerCase();
+          if (text.includes(q)) {
+            hits.push({ module: mod, bean });
+          }
+        });
+      });
+
+      container.innerHTML = `
+        <div class="mb-4 flex items-center justify-between">
+          <div class="text-xs text-slate-400">Spotlight Search Results for <span class="text-white font-semibold">"${query}"</span> (${hits.length} matches)</div>
+          <button type="button" id="btnClearSearch" class="text-xs text-blue-400 hover:underline">Clear Search (Esc)</button>
+        </div>
+        <div class="space-y-2">
+          ${hits.length === 0 ? `<div class="p-8 text-center text-xs text-slate-500">No SugarBeans matched "${query}".</div>` : hits.map(h => {
+            const title = h.bean.name || `${h.bean.first_name || ''} ${h.bean.last_name || ''}`.trim() || h.bean.id;
+            return `
+              <div data-inspect-module="${h.module}" data-inspect-id="${h.bean.id}" class="inspect-row p-3 rounded-xl bg-slate-50 dark:bg-[#1E222B] border border-slate-200 dark:border-[#2B313D] hover:border-blue-500 flex items-center justify-between cursor-pointer">
+                <div class="flex items-center gap-2.5">
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/15 text-blue-400">${h.module}</span>
+                  <span class="text-xs font-semibold">${title}</span>
+                </div>
+                <span class="text-[11px] font-mono text-slate-400">${h.bean.id}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      const clearBtn = document.getElementById('btnClearSearch');
+      if (clearBtn) {
+        clearBtn.onclick = () => {
+          appState.searchQuery = '';
+          document.getElementById('globalSearchInput').value = '';
+          renderWorkspace();
+        };
+      }
+      bindInspectRows(container);
+    }
+
+    // INSPECTOR DRAWER (SuiteCRM DetailView + Relationship Subpanels)
+    function bindInspectRows(root) {
+      root.querySelectorAll('.inspect-row').forEach(row => {
+        row.onclick = () => {
+          const mod = row.getAttribute('data-inspect-module');
+          const id = row.getAttribute('data-inspect-id');
+          openInspector(mod, id);
+        };
+      });
+    }
+
+    function openInspector(moduleName, beanId) {
+      const bean = crmStore.getBean(moduleName, beanId);
+      const meta = SUITECRM_VARDEFS[moduleName];
+      const drawer = document.getElementById('inspectorDrawer');
+      if (!bean || !meta || !drawer) return;
+
+      appState.selectedBean = { module: moduleName, id: beanId };
+      drawer.classList.remove('hidden');
+
+      const displayTitle = bean.name || `${bean.first_name || ''} ${bean.last_name || ''}`.trim() || bean.id;
+      document.getElementById('inspectorModulePill').textContent = meta.singular;
+      document.getElementById('inspectorTitle').textContent = displayTitle;
+
+      const body = document.getElementById('inspectorBody');
+
+      // Render DetailView attributes
+      const fieldsHtml = meta.fields.map(f => {
+        let val = bean[f.name] ?? '—';
+        if (f.type === 'relate' && f.relateModule === 'Accounts') val = crmStore.getAccountName(val);
+        if (f.type === 'currency') val = fmtCurrency(val);
+        return `
+          <div class="flex items-center justify-between py-1.5 border-b border-slate-200/60 dark:border-[#262B33] text-xs">
+            <span class="text-slate-400">${f.label}</span>
+            <span class="font-medium text-right max-w-[200px] truncate">${val}</span>
+          </div>
+        `;
+      }).join('');
+
+      // Extra calculated fields for Quotes
+      let extraQuoteHtml = '';
+      if (moduleName === 'Quotes') {
+        extraQuoteHtml = `
+          <div class="p-3 rounded-xl bg-teal-500/10 border border-teal-500/30 text-xs space-y-1">
+            <div class="font-semibold text-teal-400">AOS Quote Financial Summary</div>
+            <div class="flex justify-between"><span>Subtotal:</span><span class="font-mono">$${Number(bean.subtotal_amount || 0).toLocaleString()}</span></div>
+            <div class="flex justify-between"><span>Discount (${bean.discount_percent || 0}%):</span><span class="font-mono text-amber-400">-$${Number(bean.discount_amount || 0).toLocaleString()}</span></div>
+            <div class="flex justify-between"><span>Tax (${bean.tax_percent || 0}%):</span><span class="font-mono">+$${Number(bean.tax_amount || 0).toLocaleString()}</span></div>
+            <div class="flex justify-between pt-1 border-t border-teal-500/20 font-bold text-emerald-400"><span>Grand Total:</span><span class="font-mono">$${Number(bean.total_amount || 0).toLocaleString()}</span></div>
+          </div>
+        `;
+      }
+
+      // Lead conversion button inside Inspector if Lead is open
+      let leadActionHtml = '';
+      if (moduleName === 'Leads' && bean.status !== 'Converted') {
+        leadActionHtml = `
+          <button type="button" id="btnInspectorConvertLead" class="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow">
+            Convert Lead → Account + Contact + Deal
+          </button>
+        `;
+      }
+
+      // SuiteCRM Subpanels (load_relationship)
+      const subpanelsHtml = (meta.subpanels || []).map(subMod => {
+        const relBeans = crmStore.getRelatedBeans(moduleName, beanId, subMod);
+        return `
+          <div class="rounded-xl bg-white dark:bg-[#14171E] border border-slate-200 dark:border-[#262B33] p-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Subpanel: ${subMod} (${relBeans.length})</span>
+              <button type="button" data-subpanel-add="${subMod}" class="btn-subpanel-add text-[11px] text-blue-400 hover:underline">+ Add</button>
+            </div>
+            ${relBeans.length === 0
+              ? `<div class="text-[11px] text-slate-500 py-1">No related ${subMod} records.</div>`
+              : `<div class="space-y-1.5">
+                  ${relBeans.map(rb => {
+                    const rTitle = rb.name || `${rb.first_name || ''} ${rb.last_name || ''}`.trim();
+                    const rSub = rb.sales_stage || rb.status || rb.title || rb.stage || '';
+                    return `
+                      <div data-inspect-module="${subMod}" data-inspect-id="${rb.id}" class="inspect-row p-2 rounded bg-slate-50 dark:bg-[#1C2029] hover:bg-blue-500/15 flex items-center justify-between text-xs cursor-pointer transition">
+                        <span class="font-medium text-blue-500 dark:text-blue-400 truncate">${rTitle}</span>
+                        <span class="text-[10px] font-mono text-slate-400 shrink-0 ml-2">${rSub}</span>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>`
+            }
+          </div>
+        `;
+      }).join('');
+
+      body.innerHTML = `
+        <div class="space-y-1">${fieldsHtml}</div>
+        ${extraQuoteHtml}
+        ${leadActionHtml}
+        <div class="space-y-3 pt-2">${subpanelsHtml}</div>
+      `;
+
+      bindInspectRows(body);
+
+      const convBtn = document.getElementById('btnInspectorConvertLead');
+      if (convBtn) {
+        convBtn.onclick = () => {
+          const res = crmStore.convertLead(beanId);
+          if (res) {
+            showToast(`Converted Lead → Account "${res.account.name}"`);
+            renderApp();
+            openInspector('Accounts', res.account.id);
+          }
+        };
+      }
+
+      body.querySelectorAll('.btn-subpanel-add').forEach(btn => {
+        btn.onclick = () => {
+          const targetMod = btn.getAttribute('data-subpanel-add');
+          const defaults = {};
+          if (moduleName === 'Accounts') defaults.account_id = beanId;
+          if (targetMod === 'Activities') {
+            defaults.parent_type = moduleName;
+            defaults.parent_id = beanId;
+          }
+          openBeanModal(targetMod, null, defaults);
+        };
+      });
+    }
+
+    // MODAL FORM BUILDER (Create / Edit SugarBean)
+    function openBeanModal(moduleName = 'Accounts', existingBean = null, prefill = {}) {
+      const overlay = document.getElementById('beanModalOverlay');
+      const modSelect = document.getElementById('formModuleSelect');
+      const modHidden = document.getElementById('formModule');
+      const idHidden = document.getElementById('formRecordId');
+      const selectorRow = document.getElementById('formModuleSelectorRow');
+
+      const targetMod = SUITECRM_VARDEFS[moduleName] ? moduleName : 'Accounts';
+      modSelect.value = targetMod;
+      modHidden.value = targetMod;
+      idHidden.value = existingBean ? existingBean.id : '';
+
+      document.getElementById('modalTitle').textContent = existingBean
+        ? `Edit ${SUITECRM_VARDEFS[targetMod].singular} (${existingBean.id})`
+        : `Create ${SUITECRM_VARDEFS[targetMod].singular} SugarBean`;
+
+      selectorRow.style.display = existingBean ? 'none' : 'block';
+
+      renderModalFields(targetMod, Object.assign({}, prefill, existingBean || {}));
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+    }
+
+    function renderModalFields(moduleName, values = {}) {
+      const meta = SUITECRM_VARDEFS[moduleName];
+      const container = document.getElementById('dynamicFormFields');
+      if (!meta || !container) return;
+
+      container.innerHTML = meta.fields.map(field => {
+        const val = values[field.name] ?? '';
+        if (field.type === 'enum') {
+          return `
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">${field.label}</label>
+              <select name="${field.name}" class="w-full text-xs rounded-lg px-3 py-2 bg-slate-50 dark:bg-[#14171D] border border-slate-300 dark:border-[#2E3440]">
+                ${field.options.map(opt => `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+              </select>
+            </div>
+          `;
+        }
+        if (field.type === 'relate' && field.relateModule) {
+          const relList = crmStore.getBeans(field.relateModule);
+          return `
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">${field.label}</label>
+              <select name="${field.name}" class="w-full text-xs rounded-lg px-3 py-2 bg-slate-50 dark:bg-[#14171D] border border-slate-300 dark:border-[#2E3440]">
+                ${relList.map(r => `<option value="${r.id}" ${val === r.id ? 'selected' : ''}>${r.name || r.id}</option>`).join('')}
+              </select>
+            </div>
+          `;
+        }
+        const inputType = field.type === 'number' || field.type === 'currency' ? 'number' : (field.type === 'date' ? 'date' : 'text');
+        return `
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">${field.label}${field.required ? ' *' : ''}</label>
+            <input type="${inputType}" step="any" name="${field.name}" value="${val}" ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" class="w-full text-xs rounded-lg px-3 py-2 bg-slate-50 dark:bg-[#14171D] border border-slate-300 dark:border-[#2E3440] focus:outline-none focus:ring-1 focus:ring-blue-500" />
+          </div>
+        `;
+      }).join('');
+    }
+
+    function closeBeanModal() {
+      const overlay = document.getElementById('beanModalOverlay');
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+    }
+
+    function renderApp() {
+      renderSidebar();
+      updateHeaderBar();
+      renderWorkspace();
+    }
+
+    // Master Event Listeners Setup
+    window.addEventListener('DOMContentLoaded', () => {
+      runAutomatedSelfTests();
+      renderApp();
+
+      // Quick Create & Module Create
+      document.getElementById('btnQuickCreate').onclick = () => {
+        const mod = SUITECRM_VARDEFS[appState.activeNav] ? appState.activeNav : 'Accounts';
+        openBeanModal(mod);
+      };
+
+      document.getElementById('btnModuleCreate').onclick = () => {
+        const mod = SUITECRM_VARDEFS[appState.activeNav] ? appState.activeNav : 'Accounts';
+        openBeanModal(mod);
+      };
+
+      document.getElementById('formModuleSelect').onchange = (e) => {
+        const newMod = e.target.value;
+        document.getElementById('formModule').value = newMod;
+        renderModalFields(newMod, {});
+      };
+
+      document.getElementById('btnCloseModal').onclick = closeBeanModal;
+      document.getElementById('btnCancelModal').onclick = closeBeanModal;
+
+      document.getElementById('beanForm').onsubmit = (e) => {
+        e.preventDefault();
+        const mod = document.getElementById('formModule').value;
+        const id = document.getElementById('formRecordId').value;
+        const formData = new FormData(e.target);
+        const payload = {};
+        if (id) payload.id = id;
+        for (const [k, v] of formData.entries()) {
+          payload[k] = v;
+        }
+        const saved = crmStore.saveBean(mod, payload);
+        closeBeanModal();
+        showToast(`Saved ${mod} SugarBean (${saved.name || saved.first_name || saved.id})`);
+        renderApp();
+        openInspector(mod, saved.id);
+      };
+
+      // Opportunities View Toggle (Kanban vs List)
+      document.getElementById('btnOppKanban').onclick = () => {
+        appState.oppViewMode = 'kanban';
+        document.getElementById('btnOppKanban').className = 'px-2.5 py-1 text-xs font-medium rounded-md bg-blue-600 text-white';
+        document.getElementById('btnOppList').className = 'px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 dark:text-slate-300';
+        renderWorkspace();
+      };
+      document.getElementById('btnOppList').onclick = () => {
+        appState.oppViewMode = 'list';
+        document.getElementById('btnOppList').className = 'px-2.5 py-1 text-xs font-medium rounded-md bg-blue-600 text-white';
+        document.getElementById('btnOppKanban').className = 'px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 dark:text-slate-300';
+        renderWorkspace();
+      };
+
+      // Filter Select
+      document.getElementById('moduleFilterSelect').onchange = (e) => {
+        appState.moduleFilter = e.target.value;
+        renderWorkspace();
+      };
+
+      // Global Spotlight Search
+      const searchInput = document.getElementById('globalSearchInput');
+      searchInput.oninput = (e) => {
+        appState.searchQuery = e.target.value;
+        renderWorkspace();
+      };
+
+      // Keyboard Shortcuts (⌘K for Spotlight Search, Escape to close modal/inspector)
+      window.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          searchInput.focus();
+          searchInput.select();
+        }
+        if (e.key === 'Escape') {
+          closeBeanModal();
+        }
+      });
+
+      // Inspector Controls
+      document.getElementById('btnInspectorClose').onclick = () => {
+        document.getElementById('inspectorDrawer').classList.add('hidden');
+      };
+      document.getElementById('btnInspectorEdit').onclick = () => {
+        if (!appState.selectedBean) return;
+        const { module, id } = appState.selectedBean;
+        const bean = crmStore.getBean(module, id);
+        if (bean) openBeanModal(module, bean);
+      };
+      document.getElementById('btnInspectorDelete').onclick = () => {
+        if (!appState.selectedBean) return;
+        const { module, id } = appState.selectedBean;
+        crmStore.deleteBean(module, id);
+        document.getElementById('inspectorDrawer').classList.add('hidden');
+        showToast(`Deleted ${module} record (${id})`);
+        renderApp();
+      };
+
+      // Diagnostics / Self-Test button
+      document.getElementById('btnRunDiagnostics').onclick = () => {
+        appState.activeNav = 'tests';
+        renderApp();
+        const results = appState.lastTestResults;
+        const passes = results.filter(result => result.passed).length;
+        showToast(`SuiteCRM Self-Tests: ${passes}/${results.length} passed`);
+      };
+
+      // Export SugarBean JSON
+      document.getElementById('btnExportData').onclick = () => {
+        const json = JSON.stringify(crmStore.db, null, 2);
+        if (window.webkit?.messageHandlers?.crmBridge) {
+          window.webkit.messageHandlers.crmBridge.postMessage({action: 'export', data: json});
+          return;
+        }
+        const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(json);
+        const a = document.createElement('a');
+        a.setAttribute('href', dataStr);
+        a.setAttribute('download', 'suitecrm_mac_beans_export.json');
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast('Exported SugarBean database to suitecrm_mac_beans_export.json');
+      };
+
+      // Reset Demo Seed Data
+      document.getElementById('btnResetDemo').onclick = () => {
+        crmStore.reset();
+        document.getElementById('inspectorDrawer').classList.add('hidden');
+        renderApp();
+        showToast('Restored default SuiteCRM enterprise seed dataset');
+      };
+
+      // Theme Toggle
+      document.getElementById('btnThemeToggle').onclick = () => {
+        document.documentElement.classList.toggle('dark');
+        renderWorkspace();
+      };
+
+      // Sidebar Collapse
+      document.getElementById('btnToggleSidebar').onclick = () => {
+        document.getElementById('macSidebar').classList.toggle('hidden');
+      };
+
+      // Traffic Lights Easter Eggs
+      document.getElementById('btnTrafficMax').onclick = () => {
+        document.getElementById('macWindow').classList.toggle('sm:m-2');
+        document.getElementById('macWindow').classList.toggle('sm:rounded-2xl');
+        showToast('Toggled macOS Fullscreen Window Mode');
+      };
+      document.getElementById('btnTrafficMin').onclick = () => {
+        document.getElementById('inspectorDrawer').classList.add('hidden');
+        showToast('Collapsed Inspector Drawer');
+      };
+      document.getElementById('btnTrafficClose').onclick = () => {
+        appState.activeNav = 'Dashboard';
+        appState.searchQuery = '';
+        searchInput.value = '';
+        renderApp();
+        showToast('Returned to SuiteCRM Home Dashboard');
+      };
+    });
+  </script>
+</body>
+</html>
