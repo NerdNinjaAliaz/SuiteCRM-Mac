@@ -1,100 +1,99 @@
-<a href="https://suitecrm.com">
-  <img width="180px" height="41px" src="https://suitecrm.com/wp-content/uploads/2017/12/logo.png" align="right" />
-</a>
+# SuiteCRM for Mac — Architecture, Developer & User Documentation
 
-# SuiteCRM 7.15.2
+**SuiteCRM for Mac** is a native-inspired macOS desktop and WebKit CRM application modeled on the core architecture of the open-source [SuiteCRM Repository](https://github.com/SuiteCRM/SuiteCRM). It brings SuiteCRM's enterprise data model—[SugarBean ORM](https://docs.suitecrm.com/developer/core-framework/working-with-beans/), declarative [Metadata (Vardefs)](https://docs.suitecrm.com/developer/core-framework/metadata/), relationship subpanels, [Leads](https://docs.suitecrm.com/user/sales-relationships/leads/) conversion, [AOS Quotes](https://docs.suitecrm.com/user/sales-relationships/quotes-invoices-contracts/), and [Logic Hooks](https://docs.suitecrm.com/developer/core-framework/logic-hooks/)—into a fast, zero-dependency macOS experience.
 
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/SuiteCRM/SuiteCRM/issues)
-[![GitHub contributors](https://img.shields.io/github/contributors/SuiteCRM/suitecrm)](https://github.com/SuiteCRM/SuiteCRM/graphs/contributors)
-[![LICENSE](https://img.shields.io/github/license/suitecrm/suitecrm.svg)](https://github.com/SuiteCRM/suitecrm/blob/hotfix/LICENSE.txt)
+## 1. Architectural Overview
 
+SuiteCRM for Mac mirrors the three foundational layers of [SuiteCRM](https://github.com/SuiteCRM/SuiteCRM):
 
+| Architectural Layer | SuiteCRM (PHP / MySQL) | SuiteCRM for Mac (`suitecrm_mac.html` + `sugarbean_engine.py`) |
+| :--- | :--- | :--- |
+| **Data Model (ORM)** | [SugarBean](https://docs.suitecrm.com/developer/core-framework/working-with-beans/) & `BeanFactory` | `BeanStoreEngine` (JS LocalStorage/Memory) & `SugarBeanSQLiteEngine` (Python SQLite) |
+| **Declarative Metadata** | `vardefs.php`, `detailviewdefs.php`, `listviewdefs.php` ([Metadata](https://docs.suitecrm.com/developer/core-framework/metadata/)) | `SUITECRM_VARDEFS` schema registry driving tables, forms, filters, and inspectors dynamically |
+| **Relationship Engine** | `load_relationship()` & Subpanel definitions | `getRelatedBeans()` / `load_relationship()` resolving 1-to-many subpanels inside the macOS Inspector Drawer |
+| **Automation & Hooks** | [Logic Hooks](https://docs.suitecrm.com/developer/core-framework/logic-hooks/) (`before_save`, `after_save`) & AOW Workflows | Built-in AOW Rules 1–4 executing automatically on Bean creation, stage updates, and case escalations |
+| **Desktop Shell** | Apache / IIS Web Browser UI | Native macOS `NSWindow` + `WKWebView` wrapper (`MacApp.swift`) with traffic-light controls & `⌘K` Spotlight search |
 
-[Website](https://suitecrm.com) |
-[Demo](https://suitecrm.com/demo/) |
-[Maintainers](https://suitecrm.com/about/about-us/suitecrm-ltd/) |
-[Contributors](https://github.com/SuiteCRM/SuiteCRM/graphs/contributors) |
-[Community Forum](https://community.suitecrm.com/) |
-[Partners](https://suitecrm.com/about/about-us/partners/) |
-[Extensions Directory](https://store.suitecrm.com/?tag=suitecrm) |
-[Translations](https://sourceforge.net/projects/suitecrmtranslations/)
+## 2. Core Modules & Functional Specifications
 
-[SuiteCRM](https://suitecrm.com) is the award-winning open-source, enterprise-ready Customer Relationship Management (CRM) software application.
+Every stock module is defined in `SUITECRM_VARDEFS` and supports full CRUD operations, enum filtering, Spotlight search (`⌘K`), and relationship subpanel inspection:
 
-Our vision is to be the most adopted open source enterprise CRM in the world, giving users full control of their data and freedom to own and customise their business solution.
+1. **Executive Dashboard (`Home::Dashlets`)**
+   - Displays real-time KPI dashlets for Active Pipeline (`$`), Probability-Weighted Forecast (`$`), Closed Won Revenue, Active Inbound Leads, and Open Support Cases.
+   - Renders interactive Chart.js visualizations for **Pipeline by Sales Stage ($)** and **Leads & Contacts by Acquisition Source**.
+   - Lists top open deals and upcoming planned activities with one-click Bean inspection.
 
-SuiteCRM 7 is a mature and stable CRM with a large community and regular releases containing new features, security patches and bug fixes from both our community and the SuiteCRM team.
+2. **[Accounts](https://docs.suitecrm.com/user/sales-relationships/accounts/) (`modules/Accounts` — `Account` Bean)**
+   - Serves as the central company hub linking related records across the organization.
+   - **Fields**: `name`, `account_type` (`Customer`, `Prospect`, `Partner`, `Reseller`, `Investor`), `industry`, `annual_revenue`, `phone_office`, `website`, `billing_address_city`, `assigned_user_name`.
+   - **Subpanels**: `Contacts`, `Opportunities`, `Quotes`, `Cases`, and `Activities`.
 
-You may also be interested in [SuiteCRM 8](https://github.com/SuiteCRM/SuiteCRM-Core) the latest version of SuiteCRM. At the time of writing, SuiteCRM 8 is in the levelling up phase and not yet as feature complete. More information is available on the [SuiteCRM Journey ](https://suitecrm.com/the-suitecrm-8-journey/).
+3. **[Contacts](https://docs.suitecrm.com/user/sales-relationships/contacts/) (`modules/Contacts` — `Contact` Bean)**
+   - Tracks qualified individuals associated with an Account.
+   - **Fields**: `first_name`, `last_name`, `title`, `account_id` (relational link to `Accounts`), `email1`, `phone_work`, `lead_source`.
+   - **Subpanels**: `Opportunities`, `Activities`, and `Cases`.
 
-### Getting Started
+4. **[Leads](https://docs.suitecrm.com/user/sales-relationships/leads/) (`modules/Leads` — `Lead` Bean)**
+   - Captures unqualified inbound prospects from web forms, conferences, or referrals.
+   - **1-Click Lead Conversion (`convertLead` / `convert_lead`)**: Atomically converts a Lead into a linked **Account**, **Contact**, and **Opportunity** (initialized at `Qualification` / `25%` probability) and marks the Lead status as `Converted`.
 
-SuiteCRM 7 is compatible with most Linux and Windows servers. Test and development servers can be deployed locally, however for best performance and compatibility we recommend hosting on a linux based server with a properly configured LAMP Stack. As SuiteCRM is based on standard technologies like Apache, PHP and MySQL, the CRM can be self-hosted on your own internal network, on a public cloud provider or on a fully managed hosting service.
+5. **[Opportunities](https://docs.suitecrm.com/user/sales-relationships/opportunities/) (`modules/Opportunities` — `Opportunity` Bean)**
+   - Manages revenue deals across six standard sales stages: `Prospecting` (10%), `Qualification` (25%), `Proposal/Price Quote` (65%), `Negotiation/Review` (80%), `Closed Won` (100%), and `Closed Lost` (0%).
+   - Includes both a **Kanban Pipeline Board** (with one-click `Advance Stage →` buttons) and a **List View**.
 
-#### Key System Requirements
-* **Web Server:** Apache (recommended) or IIS
-* **PHP:** 8.1 - 8.4
-* **Database:** MySQL or MariaDB (recommended) or MSSQL
+6. **[Quotes (AOS)](https://docs.suitecrm.com/user/sales-relationships/quotes-invoices-contracts/) (`modules/AOS_Quotes` — `AOS_Quotes` Bean)**
+   - Models SuiteCRM's Advanced OpenSales quoting module.
+   - Automatically calculates `discount_amount`, `tax_amount`, and `total_amount` from `subtotal_amount`, `discount_percent`, and `tax_percent` during the `before_save` hook.
 
-Please see our [Compatibility Matrix](https://docs.suitecrm.com/admin/compatibility-matrix/) and [Installation Guide](https://docs.suitecrm.com/admin/installation-guide/downloading-installing/) for more detail.
+7. **Support Cases (`modules/Cases` — `aCase` Bean) & Activities (`modules/Activities` — `Task` Bean)**
+   - Tracks customer issues by priority (`P1 - Critical` through `P4 - Low`), status, and resolution notes.
+   - Connects unified `Call`, `Meeting`, and `Task` activities to any parent SugarBean record (`parent_type` + `parent_id`).
 
-SuiteCRM Ltd, the authors and maintainers of SuiteCRM offer a range of [fully managed hosting](https://suitecrm.com/suitecrmhosted/) services. These are ideal for organisations who don't have the in house knowledge or experience to host and maintain the application and are a great way to support the future development of the project.
+## 3. Advanced OpenWorkflow (AOW) & Logic Hooks
 
-### Demo
+SuiteCRM for Mac implements four automated [Logic Hooks](https://docs.suitecrm.com/developer/core-framework/logic-hooks/) that can be toggled live in the **AOW Workflows & Hooks** view:
 
-We have a demo of SuiteCRM 7 available online, allowing you to easily try the CRM and some of its features.
+| Rule ID | Trigger Hook | Target Module | Automated Behavior |
+| :--- | :--- | :--- | :--- |
+| **AOW Rule 1** | `before_save` | `Opportunities` | Synchronizes `probability` (%) automatically whenever `sales_stage` is set or updated. |
+| **AOW Rule 2** | `before_save` | `Quotes` | Computes `discount_amount`, `tax_amount`, and `total_amount` from subtotal, discount %, and tax %. |
+| **AOW Rule 3** | `after_save` | `Cases` | Automatically creates an urgent escalation `Task` in `Activities` when a new `P1 - Critical` Case is saved. |
+| **AOW Rule 4** | `after_save` | `Opportunities` | Schedules a `Customer Onboarding Kickoff` meeting under the parent Account when a deal reaches `Closed Won`. |
 
-Try out our demo here: [Click here to visit the SuiteCRM Demo](https://suitecrm.com/demo/)
+## 4. Repository Structure & macOS Build Instructions
 
-The demo rebuilds every hour, so any changes made will be removed automatically on a regular basis. Please note the demo is public so don't upload any personal information.
+The `suitecrm_mac_desktop.zip` package contains the complete source tree ready for macOS compilation and GitHub hosting:
 
-### Updating SuiteCRM
+- `suitecrm_mac.html` — Self-contained interactive macOS CRM application (HTML5, Tailwind CSS, Chart.js, SugarBean JS ORM, and 8 built-in self-tests).
+- `MacApp.swift` — Native macOS AppKit & `WKWebView` wrapper with transparent vibrancy titlebar and standard window controls.
+- `sugarbean_engine.py` — Python 3 + SQLite3 implementation of the SugarBean ORM, `load_relationship` resolver, Lead conversion, and AOW hooks.
+- `test_suitecrm_mac.py` — Automated `unittest` suite verifying all 7 backend SQLite CRM workflows.
+- `SUITECRM_MAC_DOCUMENTATION.md` & `README.md` — Full technical and user documentation.
+- `publish_to_github.sh` — Helper shell script to initialize, commit, and push the repository to GitHub (`https://github.com/NerdNinjaAliaz/suitecrm-mac`).
 
-To benefit from the latest security and bugfixes as well as the most comprehensive feature set, we recommend all users upgrade to the latest ESR release at their earliest opportunity. See our [upgrade documentation](https://docs.suitecrm.com/admin/installation-guide/upgrading/) for more detail.
+### Compiling the Native macOS App (`SuiteCRM-Mac`)
 
-### News and Releases
+Run the following command in Terminal on macOS (requires Xcode Command Line Tools):
 
-To stay up to date on our latest releases, including security patches and fixes we recommend you monitor our [News Page](https://suitecrm.com/about/newsroom/press/) and [Release Notes](https://docs.suitecrm.com/admin/releases/)
+```bash
+unzip suitecrm_mac_desktop.zip
+cd suitecrm_mac_desktop
+swiftc MacApp.swift -framework Cocoa -framework WebKit -o SuiteCRM-Mac
+./SuiteCRM-Mac
+```
 
-You can also [Subscribe to our Newsletter](https://suitecrm.com/about/about-us/sign-up-for-marketing/) or follow us on Social Media.
+### Running the Automated Verification Suites
 
-### Code Contributors
+1. **Python SQLite SugarBean Test Suite** (7 unit & integration tests):
+   ```bash
+   python3 test_suitecrm_mac.py
+   ```
+2. **In-App JavaScript Self-Test Suite** (8 end-to-end assertions):
+   Click **Run Tests** in the top-right toolbar of the app (or open **Test Suite & Audit Log** in the left sidebar) to run all 8 assertions and inspect the real-time LogicHook execution log.
 
-This project exists thanks to all the people who [contribute](https://github.com/SuiteCRM/SuiteCRM/graphs/contributors) and more.
-<a href="https://github.com/SuiteCRM/SuiteCRM/graphs/contributors"><img src="https://opencollective.com/SuiteCRM/contributors.svg?avatarHeight=36&width=890&button=false" /></a>
+## 5. Keyboard Shortcuts & Quick Actions
 
-As an open source project, we welcome sponsorships from our individuals and organisations in our community. Your contribution to the project will help drive the SuiteCRM project forward at a greater rate.
-
-If you use SuiteCRM in your organisation, please consider [sponsoring the SuiteCRM Project](https://suitecrm.com/join-the-project/suitecrm-community-sponsorship/)
-
-Or if You want to buy the **core team** a coffee :coffee: or beer :beer:?
-Then consider a small [donation](https://opencollective.com/SuiteCRM/contribute) to help fuel our activities :heart:
-
-
-### Roadmap ### 
-
-View the [Roadmap](https://suitecrm.com/roadmap/) for details on our planned features and future direction.
-
-### Contributing
-
-Contributions are welcome. Please read our [contributing guide](.github/CONTRIBUTING.md) and the [contributing code documentation](https://docs.suitecrm.com/community/contributing-code/) before you start. Bug fixes can go straight to a pull request on the `hotfix` branch. For a new feature, please open a feature proposal first and wait for a reply. Voting up issues and pull requests also helps us decide what to work on: see [how voting works](https://docs.suitecrm.com/community/raising-issues/issues-voting/).
-
-### Support ###
-
-SuiteCRM is an open-source project. If you require help with support then please use our [support forum](https://community.suitecrm.com/). By using the forums the knowledge is shared with everyone in the community. Our developer and community team members answer questions on the forum daily, but it also allows the other members of the community to contribute. If you would like customisations to specifically fit your SuiteCRM needs then please visit the [website](https://suitecrm.com/).
-
-SuiteCRM Ltd also offers a range of complementary hosting and support services:
-
-- [Hosting](https://suitecrm.com/suitecrmhosted/)
-- [Support Plans](https://suitecrm.com/enterprise/support-plans/)
-- [SuiteASSURED](https://suitecrm.com/enterprise/suiteassured/)
-
-By utilising these services you are also contributing to the future development and progress of the project.
-
-### License [![AGPLv3](https://img.shields.io/github/license/suitecrm/suitecrm.svg)](./LICENSE.txt)
-
-SuiteCRM is published under the AGPLv3 license.
-
-
-
-
+- **Spotlight Search (`⌘K` or `Ctrl+K`)**: Focuses the global search bar to filter across all SugarBeans (`Accounts`, `Contacts`, `Leads`, `Opportunities`, `Quotes`, `Cases`, `Activities`).
+- **Close Active Modal (`Esc`)**: Dismisses the Create/Edit SugarBean modal or clears active search.
+- **Export Database (`↓` Toolbar Icon)**: Exports the entire in-memory SugarBean database to `suitecrm_mac_beans_export.json`.
+- **Reset Seed Data (`↻` Toolbar Icon)**: Restores the factory enterprise seed dataset.
