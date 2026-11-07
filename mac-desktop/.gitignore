@@ -1,0 +1,4 @@
+dist/
+SuiteCRM-Mac
+*.dmg
+*.app/

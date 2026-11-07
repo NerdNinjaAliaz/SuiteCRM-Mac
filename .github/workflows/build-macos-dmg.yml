@@ -1,0 +1,41 @@
+name: Build macOS DMG Installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - mac-version
+    paths:
+      - 'mac-desktop/**'
+      - '.github/workflows/build-macos-dmg.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-macos-dmg:
+    name: Create SuiteCRM for Mac DMG
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out mac-version
+        uses: actions/checkout@v4
+      - name: Test Python SQLite engine
+        run: python3 -m unittest discover -s mac-desktop -p 'test_suitecrm_mac.py' -v
+      - name: Compile universal macOS app and package DMG
+        env:
+          VERSION: '1.0.0'
+          ARCHES: universal
+        run: bash mac-desktop/build_dmg.sh
+      - name: Verify installer files
+        run: |
+          file 'mac-desktop/dist/SuiteCRM for Mac.app/Contents/MacOS/SuiteCRM-Mac'
+          /usr/bin/codesign --verify --strict --verbose=2 'mac-desktop/dist/SuiteCRM for Mac.app'
+          /usr/bin/hdiutil verify 'mac-desktop/dist/SuiteCRM-for-Mac-1.0.0.dmg'
+      - name: Upload downloadable DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: SuiteCRM-for-Mac-1.0.0-DMG
+          path: mac-desktop/dist/*.dmg
+          if-no-files-found: error
+          retention-days: 30
