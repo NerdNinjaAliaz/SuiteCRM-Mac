@@ -1,7 +1,11 @@
-# Mac desktop companion for SuiteCRM (prototype)
+# SuiteCRM for Mac · Getting started
 
-This addition preserves the entire original PHP SuiteCRM repository and adds a **separate** macOS/browser CRM prototype in [`mac-desktop/`](mac-desktop/README.md).
+The standalone Mac/browser CRM companion lives under **[`mac-desktop/`](mac-desktop/)**.
 
-Open [`mac-desktop/README.md`](mac-desktop/README.md) for build instructions, limitations, and data-storage information.
+- [Redesigned repository README](README.md)
+- [Browser, desktop, Python and DMG setup](mac-desktop/README.md)
+- [Build DMG on your Mac or GitHub Actions](mac-desktop/DMG_GUIDE.md)
+- [Project description page](docs/index.html)
+- [Technical architecture](mac-desktop/SUITECRM_MAC_DOCUMENTATION.md)
 
-**Not officially endorsed by SuiteCRM. No real SuiteCRM backend connection or live PHP/MySQL synchronization is provided.** Upstream project: https://github.com/SuiteCRM/SuiteCRM. Preserve the upstream `LICENSE.txt` (AGPL-3.0).
+> The upstream PHP SuiteCRM code remains in this fork. The Mac companion is a separate, unofficial experiment without backend synchronization.

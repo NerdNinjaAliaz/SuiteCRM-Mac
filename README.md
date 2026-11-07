@@ -1,99 +1,166 @@
-# SuiteCRM for Mac — Architecture, Developer & User Documentation
+<p align="center"><img src="docs/assets/project-banner.svg" width="100%" alt="SuiteCRM for Mac conceptual dashboard illustration" /></p>
 
-**SuiteCRM for Mac** is a native-inspired macOS desktop and WebKit CRM application modeled on the core architecture of the open-source [SuiteCRM Repository](https://github.com/SuiteCRM/SuiteCRM). It brings SuiteCRM's enterprise data model—[SugarBean ORM](https://docs.suitecrm.com/developer/core-framework/working-with-beans/), declarative [Metadata (Vardefs)](https://docs.suitecrm.com/developer/core-framework/metadata/), relationship subpanels, [Leads](https://docs.suitecrm.com/user/sales-relationships/leads/) conversion, [AOS Quotes](https://docs.suitecrm.com/user/sales-relationships/quotes-invoices-contracts/), and [Logic Hooks](https://docs.suitecrm.com/developer/core-framework/logic-hooks/)—into a fast, zero-dependency macOS experience.
+<h1 align="center">SuiteCRM for Mac</h1>
+<p align="center"><b>Desktop-first CRM workflows, inspired by open-source SuiteCRM.</b></p>
+<p align="center">A standalone Mac and browser CRM prototype made with Swift, WebKit, JavaScript and Python.</p>
 
-## 1. Architectural Overview
+<p align="center">
+<a href="https://github.com/NerdNinjaAliaz/SuiteCRM-Mac/actions/workflows/build-macos-dmg.yml"><img alt="Build DMG status" src="https://github.com/NerdNinjaAliaz/SuiteCRM-Mac/actions/workflows/build-macos-dmg.yml/badge.svg?branch=mac-version" /></a>
+<img alt="macOS 13+" src="https://img.shields.io/badge/macOS-13%2B-1a2841?logo=apple&logoColor=white" />
+<img alt="Swift and WebKit" src="https://img.shields.io/badge/Swift-AppKit%20%2B%20WebKit-298cfa" />
+<img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-2b8788" />
+<img alt="Prototype" src="https://img.shields.io/badge/status-prototype-f1b94c" />
+</p>
 
-SuiteCRM for Mac mirrors the three foundational layers of [SuiteCRM](https://github.com/SuiteCRM/SuiteCRM):
+<p align="center">
+<a href="#-quick-start">Quick start</a> ·
+<a href="#-features">Features</a> ·
+<a href="#-build-a-dmg-installer">DMG installer</a> ·
+<a href="docs/index.html">Project landing page</a> ·
+<a href="mac-desktop/SUITECRM_MAC_DOCUMENTATION.md">Developer docs</a>
+</p>
 
-| Architectural Layer | SuiteCRM (PHP / MySQL) | SuiteCRM for Mac (`suitecrm_mac.html` + `sugarbean_engine.py`) |
-| :--- | :--- | :--- |
-| **Data Model (ORM)** | [SugarBean](https://docs.suitecrm.com/developer/core-framework/working-with-beans/) & `BeanFactory` | `BeanStoreEngine` (JS LocalStorage/Memory) & `SugarBeanSQLiteEngine` (Python SQLite) |
-| **Declarative Metadata** | `vardefs.php`, `detailviewdefs.php`, `listviewdefs.php` ([Metadata](https://docs.suitecrm.com/developer/core-framework/metadata/)) | `SUITECRM_VARDEFS` schema registry driving tables, forms, filters, and inspectors dynamically |
-| **Relationship Engine** | `load_relationship()` & Subpanel definitions | `getRelatedBeans()` / `load_relationship()` resolving 1-to-many subpanels inside the macOS Inspector Drawer |
-| **Automation & Hooks** | [Logic Hooks](https://docs.suitecrm.com/developer/core-framework/logic-hooks/) (`before_save`, `after_save`) & AOW Workflows | Built-in AOW Rules 1–4 executing automatically on Bean creation, stage updates, and case escalations |
-| **Desktop Shell** | Apache / IIS Web Browser UI | Native macOS `NSWindow` + `WKWebView` wrapper (`MacApp.swift`) with traffic-light controls & `⌘K` Spotlight search |
+> [!IMPORTANT]
+> **Unofficial independent prototype.** This is a **fork of [SuiteCRM/SuiteCRM](https://github.com/SuiteCRM/SuiteCRM)** with a separate Mac/browser companion inside [`mac-desktop/`](mac-desktop/). The companion is **not** a port of the upstream PHP/MySQL application, does **not** use the real PHP SugarBean ORM, and does **not** connect to or synchronize with a SuiteCRM server. Do not use it for sensitive production customer data.
 
-## 2. Core Modules & Functional Specifications
+## ✨ Features
 
-Every stock module is defined in `SUITECRM_VARDEFS` and supports full CRUD operations, enum filtering, Spotlight search (`⌘K`), and relationship subpanel inspection:
+| Workspace | Capabilities |
+|:---|:---|
+| 📊 **Dashboard** | KPIs, weighted pipeline forecasts, interactive charts and open activities |
+| 🏢 **Accounts & Contacts** | Company and person records with related-record inspectors |
+| 🎯 **Leads** | One-click lead conversion into Account, Contact and Opportunity |
+| 📈 **Opportunities** | Six sales stages, Kanban/list views and probability automation |
+| 🧾 **Quotes (AOS-inspired)** | Automatic subtotal, discount, tax and total calculations |
+| 🛟 **Cases & Activities** | Support tickets, calls, meetings, tasks and escalation |
+| ⚡ **Workflows** | Four sample before/after-save business rules |
+| 🔎 **Search & theme** | `⌘K` Spotlight-style lookup and light/dark theme |
 
-1. **Executive Dashboard (`Home::Dashlets`)**
-   - Displays real-time KPI dashlets for Active Pipeline (`$`), Probability-Weighted Forecast (`$`), Closed Won Revenue, Active Inbound Leads, and Open Support Cases.
-   - Renders interactive Chart.js visualizations for **Pipeline by Sales Stage ($)** and **Leads & Contacts by Acquisition Source**.
-   - Lists top open deals and upcoming planned activities with one-click Bean inspection.
+The UI comes with **fictional demo data**.
 
-2. **[Accounts](https://docs.suitecrm.com/user/sales-relationships/accounts/) (`modules/Accounts` — `Account` Bean)**
-   - Serves as the central company hub linking related records across the organization.
-   - **Fields**: `name`, `account_type` (`Customer`, `Prospect`, `Partner`, `Reseller`, `Investor`), `industry`, `annual_revenue`, `phone_office`, `website`, `billing_address_city`, `assigned_user_name`.
-   - **Subpanels**: `Contacts`, `Opportunities`, `Quotes`, `Cases`, and `Activities`.
+## 🚀 Quick start
 
-3. **[Contacts](https://docs.suitecrm.com/user/sales-relationships/contacts/) (`modules/Contacts` — `Contact` Bean)**
-   - Tracks qualified individuals associated with an Account.
-   - **Fields**: `first_name`, `last_name`, `title`, `account_id` (relational link to `Accounts`), `email1`, `phone_work`, `lead_source`.
-   - **Subpanels**: `Opportunities`, `Activities`, and `Cases`.
-
-4. **[Leads](https://docs.suitecrm.com/user/sales-relationships/leads/) (`modules/Leads` — `Lead` Bean)**
-   - Captures unqualified inbound prospects from web forms, conferences, or referrals.
-   - **1-Click Lead Conversion (`convertLead` / `convert_lead`)**: Atomically converts a Lead into a linked **Account**, **Contact**, and **Opportunity** (initialized at `Qualification` / `25%` probability) and marks the Lead status as `Converted`.
-
-5. **[Opportunities](https://docs.suitecrm.com/user/sales-relationships/opportunities/) (`modules/Opportunities` — `Opportunity` Bean)**
-   - Manages revenue deals across six standard sales stages: `Prospecting` (10%), `Qualification` (25%), `Proposal/Price Quote` (65%), `Negotiation/Review` (80%), `Closed Won` (100%), and `Closed Lost` (0%).
-   - Includes both a **Kanban Pipeline Board** (with one-click `Advance Stage →` buttons) and a **List View**.
-
-6. **[Quotes (AOS)](https://docs.suitecrm.com/user/sales-relationships/quotes-invoices-contracts/) (`modules/AOS_Quotes` — `AOS_Quotes` Bean)**
-   - Models SuiteCRM's Advanced OpenSales quoting module.
-   - Automatically calculates `discount_amount`, `tax_amount`, and `total_amount` from `subtotal_amount`, `discount_percent`, and `tax_percent` during the `before_save` hook.
-
-7. **Support Cases (`modules/Cases` — `aCase` Bean) & Activities (`modules/Activities` — `Task` Bean)**
-   - Tracks customer issues by priority (`P1 - Critical` through `P4 - Low`), status, and resolution notes.
-   - Connects unified `Call`, `Meeting`, and `Task` activities to any parent SugarBean record (`parent_type` + `parent_id`).
-
-## 3. Advanced OpenWorkflow (AOW) & Logic Hooks
-
-SuiteCRM for Mac implements four automated [Logic Hooks](https://docs.suitecrm.com/developer/core-framework/logic-hooks/) that can be toggled live in the **AOW Workflows & Hooks** view:
-
-| Rule ID | Trigger Hook | Target Module | Automated Behavior |
-| :--- | :--- | :--- | :--- |
-| **AOW Rule 1** | `before_save` | `Opportunities` | Synchronizes `probability` (%) automatically whenever `sales_stage` is set or updated. |
-| **AOW Rule 2** | `before_save` | `Quotes` | Computes `discount_amount`, `tax_amount`, and `total_amount` from subtotal, discount %, and tax %. |
-| **AOW Rule 3** | `after_save` | `Cases` | Automatically creates an urgent escalation `Task` in `Activities` when a new `P1 - Critical` Case is saved. |
-| **AOW Rule 4** | `after_save` | `Opportunities` | Schedules a `Customer Onboarding Kickoff` meeting under the parent Account when a deal reaches `Closed Won`. |
-
-## 4. Repository Structure & macOS Build Instructions
-
-The `suitecrm_mac_desktop.zip` package contains the complete source tree ready for macOS compilation and GitHub hosting:
-
-- `suitecrm_mac.html` — Self-contained interactive macOS CRM application (HTML5, Tailwind CSS, Chart.js, SugarBean JS ORM, and 8 built-in self-tests).
-- `MacApp.swift` — Native macOS AppKit & `WKWebView` wrapper with transparent vibrancy titlebar and standard window controls.
-- `sugarbean_engine.py` — Python 3 + SQLite3 implementation of the SugarBean ORM, `load_relationship` resolver, Lead conversion, and AOW hooks.
-- `test_suitecrm_mac.py` — Automated `unittest` suite verifying all 7 backend SQLite CRM workflows.
-- `SUITECRM_MAC_DOCUMENTATION.md` & `README.md` — Full technical and user documentation.
-- `publish_to_github.sh` — Helper shell script to initialize, commit, and push the repository to GitHub (`https://github.com/NerdNinjaAliaz/suitecrm-mac`).
-
-### Compiling the Native macOS App (`SuiteCRM-Mac`)
-
-Run the following command in Terminal on macOS (requires Xcode Command Line Tools):
+Clone the repository's **`mac-version`** branch:
 
 ```bash
-unzip suitecrm_mac_desktop.zip
-cd suitecrm_mac_desktop
-swiftc MacApp.swift -framework Cocoa -framework WebKit -o SuiteCRM-Mac
-./SuiteCRM-Mac
+git clone --depth 1 --branch mac-version https://github.com/NerdNinjaAliaz/SuiteCRM-Mac.git
+cd SuiteCRM-Mac
 ```
 
-### Running the Automated Verification Suites
+### 1 · Browser preview
 
-1. **Python SQLite SugarBean Test Suite** (7 unit & integration tests):
-   ```bash
-   python3 test_suitecrm_mac.py
-   ```
-2. **In-App JavaScript Self-Test Suite** (8 end-to-end assertions):
-   Click **Run Tests** in the top-right toolbar of the app (or open **Test Suite & Audit Log** in the left sidebar) to run all 8 assertions and inspect the real-time LogicHook execution log.
+```bash
+bash mac-desktop/run_browser.sh
+```
 
-## 5. Keyboard Shortcuts & Quick Actions
+Or open `mac-desktop/suitecrm_mac.html` in a modern browser. No compilation required. **An internet connection is needed for full styling and charts**, which load Tailwind CSS, Chart.js and Google Fonts from CDNs.
 
-- **Spotlight Search (`⌘K` or `Ctrl+K`)**: Focuses the global search bar to filter across all SugarBeans (`Accounts`, `Contacts`, `Leads`, `Opportunities`, `Quotes`, `Cases`, `Activities`).
-- **Close Active Modal (`Esc`)**: Dismisses the Create/Edit SugarBean modal or clears active search.
-- **Export Database (`↓` Toolbar Icon)**: Exports the entire in-memory SugarBean database to `suitecrm_mac_beans_export.json`.
-- **Reset Seed Data (`↻` Toolbar Icon)**: Restores the factory enterprise seed dataset.
+### 2 · Native macOS app
+
+Requires macOS and **Xcode Command Line Tools**:
+
+```bash
+xcode-select --install  # run only if not already installed
+bash mac-desktop/run_mac.sh
+```
+
+This compiles and opens the `NSWindow` + `WKWebView` desktop shell. See [desktop README](mac-desktop/README.md) for troubleshooting and storage.
+
+### 3 · Python + SQLite CLI (optional)
+
+Requires **Python 3.10+**; no pip dependencies:
+
+```bash
+python3 mac-desktop/sugarbean_engine.py init
+python3 mac-desktop/sugarbean_engine.py summary
+python3 -m unittest discover -s mac-desktop -p 'test_suitecrm_mac.py' -v
+```
+
+**Important:** The Python SQLite datastore is independent of the browser and native app; they do not sync automatically.
+
+## 📦 Build a DMG installer
+
+Build a universal Apple Silicon + Intel installer on macOS 13+ with Xcode Command Line Tools:
+
+```bash
+bash mac-desktop/check_requirements.sh
+bash mac-desktop/build_dmg.sh
+open mac-desktop/dist
+```
+
+Output files:
+
+- `mac-desktop/dist/SuiteCRM for Mac.app`
+- `mac-desktop/dist/SuiteCRM-for-Mac-1.0.0.dmg`
+
+**Without a Mac:** Use [Build macOS DMG Installer](https://github.com/NerdNinjaAliaz/SuiteCRM-Mac/actions/workflows/build-macos-dmg.yml) → **Run workflow** → `mac-version`. After a successful run, download the artifact ZIP and extract the DMG. The workflow does **not** publish a GitHub Release automatically.
+
+> [!WARNING]
+> This is an **ad-hoc-signed developer DMG**, not Apple-notarized. macOS Gatekeeper may warn on downloaded builds. For wider distribution, configure Apple Developer ID signing and notarization. See [DMG guide](mac-desktop/DMG_GUIDE.md).
+
+## 🏗️ Architecture
+
+```text
+Swift NSWindow + WKWebView
+        │ hosts
+        ▼
+suitecrm_mac.html ── JS BeanStore / Vardefs / workflow rules
+        │
+        ├── Browser mode → localStorage
+        └── Native mode  → Application Support / beans.json
+
+Separate command-line implementation:
+sugarbean_engine.py → SQLite / crm.sqlite3
+                  (NO live synchronization)
+```
+
+| Mode | Default data location |
+|---|---|
+| Browser | localStorage, per browser profile and origin |
+| Native WebKit app | `~/Library/Application Support/SuiteCRM-for-Mac/beans.json` |
+| Python engine | `~/Library/Application Support/SuiteCRM-for-Mac/crm.sqlite3` |
+
+Export and back up your data before resets. **Excel, Word and PDF exports are not implemented**.
+
+## 🗂️ Repository structure
+
+```text
+SuiteCRM-Mac/
+├── modules/, include/, custom/, ...  # original SuiteCRM PHP project
+├── LICENSE.txt                       # original AGPL-3.0 license
+├── README.md                         # redesigned project landing page
+├── docs/
+│   ├── index.html                    # custom static project webpage
+│   └── assets/project-banner.svg
+├── mac-desktop/
+│   ├── suitecrm_mac.html             # Mac-inspired CRM UI
+│   ├── MacApp.swift                  # native WebKit wrapper
+│   ├── sugarbean_engine.py           # separate SQLite engine
+│   ├── test_suitecrm_mac.py          # Python tests
+│   ├── run_browser.sh                # browser launch helper
+│   ├── run_mac.sh                    # native build + launch
+│   ├── check_requirements.sh         # macOS build preflight
+│   ├── build_mac.sh                  # executable compiler
+│   ├── build_dmg.sh                  # .app and .dmg packaging
+│   ├── GenerateIcon.swift            # application icon generator
+│   ├── DMG_GUIDE.md
+│   └── SUITECRM_MAC_DOCUMENTATION.md
+└── .github/workflows/               # tests and DMG builds
+```
+
+## 🧰 Developer notes & security
+
+- Metadata-driven JavaScript fields are defined in `SUITECRM_VARDEFS`. They are **inspired by** PHP vardefs, not a parser for them.
+- The Mac UI still requires network CDN assets for its complete appearance.
+- This prototype does **not** provide production authentication, permissions, encryption, conflict resolution, cloud sync or hardened input validation.
+- For internals and CLI details: [technical documentation](mac-desktop/SUITECRM_MAC_DOCUMENTATION.md). For distribution: [DMG documentation](mac-desktop/DMG_GUIDE.md).
+
+## 🌐 Project description website
+
+An independent, redesigned [landing page](docs/index.html) is included. To publish it using GitHub Pages (if available), use **Settings → Pages → Deploy from a branch → `mac-version` → `/docs` → Save**. It will not be publicly hosted until Pages is enabled.
+
+## 🤝 Origin and license
+
+The original upstream application is [SuiteCRM/SuiteCRM](https://github.com/SuiteCRM/SuiteCRM), released under **GNU AGPL-3.0**; see this fork's [LICENSE.txt](LICENSE.txt). Preserve its original notices and comply with the license when distributing modifications. This Mac companion is an **independent, unofficial experiment**, not endorsed by SuiteCRM.
+
+<p align="center"><sub><a href="mac-desktop/README.md">Get started</a> · <a href="https://github.com/NerdNinjaAliaz/SuiteCRM-Mac/issues">Issues</a> · <a href="https://github.com/SuiteCRM/SuiteCRM">Upstream</a></sub></p>

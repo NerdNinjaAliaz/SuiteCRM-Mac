@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="330" viewBox="0 0 1200 330" role="img" aria-label="SuiteCRM for Mac project banner — conceptual CRM dashboard">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0c1934"/><stop offset=".58" stop-color="#15415e"/><stop offset="1" stop-color="#15243f"/></linearGradient><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#71e6d6"/><stop offset="1" stop-color="#82a8ff"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="13" stdDeviation="15" flood-color="#010815" flood-opacity=".45"/></filter></defs>
+<rect width="1200" height="330" rx="24" fill="url(#bg)"/><circle cx="1100" cy="50" r="260" fill="#65cbf3" opacity=".06"/><circle cx="200" cy="330" r="220" fill="#59eac2" opacity=".035"/>
+<rect x="62" y="67" width="66" height="66" rx="20" fill="url(#a)"/><text x="95" y="116" text-anchor="middle" font-family="Arial,sans-serif" font-size="48" font-weight="bold" fill="#122642">S</text>
+<text x="62" y="194" font-family="Arial,sans-serif" font-size="54" font-weight="bold" fill="#fff">SuiteCRM <tspan fill="#70e6d5">for Mac</tspan></text>
+<text x="65" y="233" font-family="Arial,sans-serif" font-size="20" fill="#c7dded">A focused desktop CRM experience</text>
+<text x="65" y="272" font-family="monospace" font-size="14" fill="#9bd8dc">SWIFT  /  WEBKIT  /  JAVASCRIPT  /  SQLITE</text>
+<g filter="url(#shadow)" transform="translate(697 44)">
+<rect width="433" height="240" rx="15" fill="#14243b" stroke="#5d7e9b"/><rect width="433" height="35" rx="15" fill="#29405d"/><rect y="24" width="433" height="11" fill="#29405d"/>
+<circle cx="20" cy="17" r="5" fill="#ff736a"/><circle cx="36" cy="17" r="5" fill="#ffd05c"/><circle cx="52" cy="17" r="5" fill="#7fe1a1"/>
+<rect x="15" y="49" width="94" height="176" rx="8" fill="#1f3550"/><rect x="27" y="64" width="70" height="8" rx="4" fill="#66bfb9"/><rect x="27" y="92" width="56" height="7" rx="3" fill="#50738f"/><rect x="27" y="112" width="60" height="7" rx="3" fill="#50738f"/><rect x="27" y="132" width="48" height="7" rx="3" fill="#50738f"/>
+<text x="130" y="65" font-family="Arial,sans-serif" fill="#e6f4ff" font-size="15" font-weight="bold">Executive overview</text>
+<rect x="129" y="82" width="91" height="62" rx="8" fill="#284261"/><rect x="227" y="82" width="91" height="62" rx="8" fill="#284261"/><rect x="325" y="82" width="91" height="62" rx="8" fill="#284261"/>
+<text x="140" y="103" font-family="Arial,sans-serif" font-size="10" fill="#a4bad2">Pipeline</text><text x="139" y="129" font-family="Arial,sans-serif" font-size="23" font-weight="bold" fill="#f7fcff">$284k</text>
+<text x="238" y="103" font-family="Arial,sans-serif" font-size="10" fill="#a4bad2">Open leads</text><text x="238" y="129" font-family="Arial,sans-serif" font-size="23" font-weight="bold" fill="#f7fcff">24</text>
+<text x="336" y="103" font-family="Arial,sans-serif" font-size="10" fill="#a4bad2">Won deals</text><text x="337" y="129" font-family="Arial,sans-serif" font-size="23" font-weight="bold" fill="#75dfbf">12</text>
+<rect x="129" y="157" width="287" height="67" rx="8" fill="#203955"/>
+<path d="M149 211 L194 190 L235 196 L276 178 L320 185 L360 168 L396 172" stroke="#73e3d3" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</g></svg>
