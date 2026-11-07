@@ -9,8 +9,8 @@ VERSION="${VERSION:-1.0.0}"
 MIN_MACOS="13.0"
 ARCHES="${ARCHES:-universal}"  # universal | native | arm64 | x86_64
 OUT_DIR="${SOURCE_DIR}/dist"
-APP_PATH="${OUT_DIR}/${APP_NAME}.app"
-DMG_PATH="${OUT_DIR}/SuiteCRM-for-Mac-${VERSION}.dmg"
+FINAL_APP="${OUT_DIR}/${APP_NAME}.app"
+FINAL_DMG="${OUT_DIR}/SuiteCRM-for-Mac-${VERSION}.dmg"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo 'ERROR: Run this script on macOS (AppKit and hdiutil are required).' >&2
@@ -27,9 +27,13 @@ done
   echo 'ERROR: Missing MacApp.swift or suitecrm_mac.html.' >&2; exit 1;
 }
 
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/suitecrm-mac-dmg.XXXXXX")"
+mkdir -p "${OUT_DIR}"
+# Work in hidden staging; do not expose an unfinished .app in Finder.
+TMP_DIR="$(mktemp -d "${OUT_DIR}/.suitecrm-building.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
-mkdir -p "${OUT_DIR}" "${APP_PATH}/Contents/MacOS" "${APP_PATH}/Contents/Resources"
+APP_PATH="${TMP_DIR}/${APP_NAME}.app"
+DMG_PATH="${TMP_DIR}/SuiteCRM-for-Mac-${VERSION}.dmg"
+mkdir -p "${APP_PATH}/Contents/MacOS" "${APP_PATH}/Contents/Resources"
 SDK="$(xcrun --sdk macosx --show-sdk-path)"
 case "$ARCHES" in
   universal) TARGETS=(arm64 x86_64) ;;
@@ -41,8 +45,14 @@ echo "Building ${APP_NAME} ${VERSION} for ${TARGETS[*]} ..."
 BINS=()
 for arch in "${TARGETS[@]}"; do
   BIN="${TMP_DIR}/${EXECUTABLE}-${arch}"
-  xcrun swiftc -O -sdk "$SDK" -target "${arch}-apple-macos${MIN_MACOS}" \
-    -framework Cocoa -framework WebKit "${SOURCE_DIR}/MacApp.swift" -o "$BIN"
+  echo "Compiling ${arch} (do not open the app before SUCCESS) ..."
+  if ! xcrun swiftc -Onone -sdk "$SDK" -target "${arch}-apple-macos${MIN_MACOS}" \
+    -framework Cocoa -framework WebKit "${SOURCE_DIR}/MacApp.swift" -o "$BIN" >"${TMP_DIR}/compile-${arch}.log" 2>&1; then
+    echo "ERROR: Swift compilation failed for ${arch}; details:" >&2
+    tail -n 100 "${TMP_DIR}/compile-${arch}.log" >&2
+    exit 1
+  fi
+  [[ -s "$BIN" ]] || { echo "ERROR: No executable produced for ${arch}" >&2; exit 1; }
   BINS+=("$BIN")
 done
 if [[ ${#BINS[@]} -gt 1 ]]; then
@@ -51,18 +61,34 @@ else
   ditto "${BINS[0]}" "${APP_PATH}/Contents/MacOS/${EXECUTABLE}"
 fi
 chmod 755 "${APP_PATH}/Contents/MacOS/${EXECUTABLE}"
+[[ -x "${APP_PATH}/Contents/MacOS/${EXECUTABLE}" ]] || { echo "Missing executable" >&2; exit 1; }
+xcrun lipo -info "${APP_PATH}/Contents/MacOS/${EXECUTABLE}"
 ditto "${SOURCE_DIR}/suitecrm_mac.html" "${APP_PATH}/Contents/Resources/suitecrm_mac.html"
 
 ICON_PNG="${TMP_DIR}/icon-1024.png"
-xcrun swift "${SOURCE_DIR}/GenerateIcon.swift" "$ICON_PNG"
+if xcrun swift "${SOURCE_DIR}/GenerateIcon.swift" "$ICON_PNG" >"${TMP_DIR}/icon.log" 2>&1 && [[ -s "$ICON_PNG" ]]; then
+  HAVE_ICON=true
+else
+  HAVE_ICON=false
+  echo "WARNING: Icon creation failed; continuing with the system default app icon." >&2
+  tail -n 8 "${TMP_DIR}/icon.log" >&2 || true
+fi
 ICONSET="${TMP_DIR}/AppIcon.iconset"
-mkdir -p "$ICONSET"
-for pt in 16 32 128 256 512; do
-  sips -s format png -z "$pt" "$pt" "$ICON_PNG" --out "${ICONSET}/icon_${pt}x${pt}.png" >/dev/null
-  doubled=$((pt * 2))
-  sips -s format png -z "$doubled" "$doubled" "$ICON_PNG" --out "${ICONSET}/icon_${pt}x${pt}@2x.png" >/dev/null
-done
-xcrun iconutil -c icns "$ICONSET" -o "${APP_PATH}/Contents/Resources/AppIcon.icns"
+ICON_PLIST=""
+if [[ "$HAVE_ICON" == true ]]; then
+  mkdir -p "$ICONSET"
+  ICON_OK=true
+  for pt in 16 32 128 256 512; do
+    sips -s format png -z "$pt" "$pt" "$ICON_PNG" --out "${ICONSET}/icon_${pt}x${pt}.png" >/dev/null || ICON_OK=false
+    doubled=$((pt * 2))
+    sips -s format png -z "$doubled" "$doubled" "$ICON_PNG" --out "${ICONSET}/icon_${pt}x${pt}@2x.png" >/dev/null || ICON_OK=false
+  done
+  if [[ "$ICON_OK" == true ]] && xcrun iconutil -c icns "$ICONSET" -o "${APP_PATH}/Contents/Resources/AppIcon.icns"; then
+    ICON_PLIST="<key>CFBundleIconFile</key><string>AppIcon</string>"
+  else
+    echo "WARNING: Icon conversion failed; using default icon." >&2
+  fi
+fi
 
 cat > "${APP_PATH}/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -76,7 +102,7 @@ cat > "${APP_PATH}/Contents/Info.plist" <<PLIST
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
   <key>CFBundleVersion</key><string>1</string>
-  <key>CFBundleIconFile</key><string>AppIcon</string>
+  ${ICON_PLIST}
   <key>LSMinimumSystemVersion</key><string>${MIN_MACOS}</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>NSPrincipalClass</key><string>NSApplication</string>
@@ -85,6 +111,7 @@ cat > "${APP_PATH}/Contents/Info.plist" <<PLIST
 PLIST
 printf 'APPL????' > "${APP_PATH}/Contents/PkgInfo"
 plutil -lint "${APP_PATH}/Contents/Info.plist"
+[[ -s "${APP_PATH}/Contents/Resources/suitecrm_mac.html" ]] || { echo "HTML resource missing" >&2; exit 1; }
 if [[ -n "${SIGN_IDENTITY:-}" ]]; then
   codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP_PATH"
 else
@@ -110,8 +137,13 @@ if [[ -n "${NOTARY_PROFILE:-}" ]]; then
   xcrun stapler staple "$DMG_PATH"
   xcrun stapler validate "$DMG_PATH"
 fi
-printf 'SUCCESS: %s\n' "$DMG_PATH"
-printf 'App bundle: %s\n' "$APP_PATH"
+echo "Publishing only the complete, verified app and DMG..."
+rm -rf "$FINAL_APP"
+rm -f "$FINAL_DMG"
+mv "$APP_PATH" "$FINAL_APP"
+mv "$DMG_PATH" "$FINAL_DMG"
+printf 'SUCCESS: %s\n' "$FINAL_DMG"
+printf 'App bundle: %s\n' "$FINAL_APP"
 if [[ -z "${SIGN_IDENTITY:-}" ]]; then
   echo 'Note: This is an ad-hoc-signed development DMG. Gatekeeper may warn on other Macs.'
 fi

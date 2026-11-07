@@ -45,3 +45,19 @@ By default the GitHub Actions build is *not notarized*. For a professional publi
 References:
 - https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution
 - https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution
+
+## Fix: Finder says the application may be damaged or incomplete
+
+The earlier script created the public `dist/SuiteCRM for Mac.app` directory *before* Swift compilation completed. Finder could try to open that unfinished bundle. The current build uses a hidden staging directory, validates the executable, `Info.plist`, resources, code signature and DMG, then publishes only the finished files.
+
+After getting the latest code, run:
+
+```bash
+rm -rf 'mac-desktop/dist/SuiteCRM for Mac.app'
+rm -f 'mac-desktop/dist/SuiteCRM-for-Mac-1.0.0.dmg'
+ARCHES=native bash mac-desktop/build_dmg.sh
+```
+
+**Wait for `SUCCESS` before opening Finder.** Use `ARCHES=universal` when you want an Intel + Apple Silicon installer. If compilation fails, the script now prints compiler diagnostics; share the `error:` line rather than the module-map paths above it. Do not disable Gatekeeper as a workaround for an unfinished app.
+
+If HTTPS `git pull` fails, download the current branch ZIP in a browser: https://github.com/NerdNinjaAliaz/SuiteCRM-Mac/archive/refs/heads/mac-version.zip

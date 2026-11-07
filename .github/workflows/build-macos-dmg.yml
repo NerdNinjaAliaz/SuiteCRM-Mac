@@ -29,6 +29,10 @@ jobs:
         run: bash mac-desktop/build_dmg.sh
       - name: Verify installer files
         run: |
+          test -x 'mac-desktop/dist/SuiteCRM for Mac.app/Contents/MacOS/SuiteCRM-Mac'
+          test -s 'mac-desktop/dist/SuiteCRM for Mac.app/Contents/Resources/suitecrm_mac.html'
+          plutil -lint 'mac-desktop/dist/SuiteCRM for Mac.app/Contents/Info.plist'
+          xcrun lipo -verify_arch arm64 x86_64 'mac-desktop/dist/SuiteCRM for Mac.app/Contents/MacOS/SuiteCRM-Mac'
           file 'mac-desktop/dist/SuiteCRM for Mac.app/Contents/MacOS/SuiteCRM-Mac'
           /usr/bin/codesign --verify --strict --verbose=2 'mac-desktop/dist/SuiteCRM for Mac.app'
           /usr/bin/hdiutil verify 'mac-desktop/dist/SuiteCRM-for-Mac-1.0.0.dmg'

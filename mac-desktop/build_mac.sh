@@ -6,6 +6,11 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   exit 1
 fi
 xcrun --find swiftc >/dev/null || { echo "Install Xcode Command Line Tools: xcode-select --install"; exit 1; }
-swiftc MacApp.swift -framework Cocoa -framework WebKit -o SuiteCRM-Mac
+TMP_BIN="$(mktemp "${PWD}/.SuiteCRM-Mac-build.XXXXXX")"
+trap 'rm -f "$TMP_BIN"' EXIT
+xcrun swiftc -Onone MacApp.swift -framework Cocoa -framework WebKit -o "$TMP_BIN"
+[[ -s "$TMP_BIN" ]] || { echo "ERROR: No executable was built." >&2; exit 1; }
+chmod 755 "$TMP_BIN"
+mv -f "$TMP_BIN" SuiteCRM-Mac
 echo "Built $(pwd)/SuiteCRM-Mac"
 echo "Run: ./SuiteCRM-Mac"
